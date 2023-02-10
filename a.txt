@@ -1,0 +1,38 @@
+enum E {
+    VAL,
+    ONE,
+    TWO,
+    CAT
+};
+
+consteval enum_to_name: auto = \(const e: E) -> std::string {
+    var str: auto = match(e) {
+    case E::VAL -> "val";
+    case E::ONE -> "one";
+    case E::TWO -> "two";
+    case E::CAT -> "cat";
+    }
+
+    var i: auto = {
+        var i: auto = 0;
+        var j: auto = 1;
+        yield(i + j);
+    }
+
+    return(str);
+}
+
+
+
+consteval foo: auto = \() -> std::int8 {
+    std::print("hello, world!");
+    return(12);
+
+    var sum: auto = 1;
+    for(var i: auto = 1; i < 100; i++)
+        sum += i;
+};
+
+consteval main: auto = \() {
+    foo();
+};

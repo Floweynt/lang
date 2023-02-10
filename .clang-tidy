@@ -1,0 +1,5 @@
+Checks: 'bugprone*,cert*,cppcore*,misc*,modernize*,performance*,portability*,readability*,-modernize-avoid-c-arrays,-cppcoreguidelines-avoid-c-arrays,-cppcoreguidelines-avoid-const-or-ref-data-members,-cert-dcl58-cpp'
+FormatStyle:     file
+CheckOptions:
+      - key:     readability-implicit-bool-conversion.AllowIntegerConditions
+        value:   '1'

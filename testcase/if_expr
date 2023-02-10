@@ -1,0 +1,7 @@
+using int32 = @lang::types::integral::signed ::b32;
+using int = int32;
+
+auto main()
+{
+    var a : int = if (0) 3; else 4;;
+}

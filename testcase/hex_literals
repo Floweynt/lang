@@ -1,0 +1,6 @@
+auto main()
+{
+    var a: int = 0x12345678;
+    a = 0x1;
+    a = 0xabcdcdef;
+}

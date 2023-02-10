@@ -1,0 +1,53 @@
+namespace std
+{
+    // integral
+    using int8 = @lang::types::integral::signed::b8;
+    using int16 = @lang::types::integral::signed::b16;
+    using int32 = @lang::types::integral::signed::b32;
+    using int64 = @lang::types::integral::signed::b64;
+
+    using uint8 = @lang::types::integral::unsigned::b8;
+    using uint16 = @lang::types::integral::unsigned::b16;
+    using uint32 = @lang::types::integral::unsigned::b32;
+    using uint64 = @lang::types::integral::unsigned::b64;
+
+    using byte = int8;
+    using short = int16;
+    using int = int32;
+    using long = int64;
+
+    using ubyte = uint8;
+    using ushort = uint16;
+    using uint = uint32;
+    using ulong = uint64;
+
+    // floating point
+    using float32 = @lang::types::floating::b32;
+    using float64 = @lang::types::floating::b64;
+
+    using float = float32;
+    using double = float64;
+
+    // we use signed sizes
+    using size_t = @lang::types::integral::signed::max;
+
+    // char stuff
+    using char8 = @lang::types::char::b8;
+    using char16 = @lang::types::char::b16;
+    using char32 = @lang::types::char::b32;
+
+    using char = char8;
+    using wchar = @lang::types::char::wide;
+
+    // bool
+    using bool = @lang::types::bool;
+
+    // void is an empty tuple
+    // this is the unit type
+    using void = @lang::types::unit;
+
+    using metatype = @lang::types::meta;
+
+    // using __trivial_function(types...: metatype) = @lang::types::trivial_function(types);
+} // namespace std
+

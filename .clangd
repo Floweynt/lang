@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [-I/home/flowey/dev/cpp/lang/include/, -I/home/flowey/dev/cpp/lang/deps/stacktrace/include, -I/home/flowey/dev/cpp/lang/deps/stacktrace/build]

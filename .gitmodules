@@ -1,3 +1,6 @@
 [submodule "deps/stacktrace"]
 	path = deps/stacktrace
 	url = https://github.com/FloweyTheFlower420/stacktrace
+[submodule "deps/magic_enum"]
+	path = deps/magic_enum
+	url = https://github.com/Neargye/magic_enum

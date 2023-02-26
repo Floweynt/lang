@@ -4,7 +4,7 @@
 #include "block_expr_ast.h"
 #include "char_literal_expr_ast.h"
 #include "control/if_expr_ast.h"
-#include "functional_call_expr_ast.h"
+#include "function_call_expr_ast.h"
 #include "keyword_ast.h"
 #include "lambda_expr_ast.h"
 #include "lang_name_ref_expr_ast.h"

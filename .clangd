@@ -1,2 +1,7 @@
 CompileFlags:
-  Add: [-I/home/flowey/dev/cpp/lang/include/, -I/home/flowey/dev/cpp/lang/deps/stacktrace/include, -I/home/flowey/dev/cpp/lang/deps/stacktrace/build]
+  Add: [
+    -I/home/flowey/dev/cpp/lang/include/, 
+    -I/home/flowey/dev/cpp/lang/deps/stacktrace/include, 
+    -I/home/flowey/dev/cpp/lang/deps/magic_enum/include, 
+    -I/home/flowey/dev/cpp/lang/deps/stacktrace/build
+  ]

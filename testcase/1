@@ -1,4 +1,0 @@
-auto main()
-{
-    var a: int = if (!1 != (2 && 3)) { 3; } else {4; };
-}

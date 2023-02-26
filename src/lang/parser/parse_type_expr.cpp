@@ -1,12 +1,12 @@
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 
-ast_ref parse_type_expr(lexer& l, compiler_context& ctx)
+auto parse_type_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {
-    if (l.curr_token().type() == token::TOK_KW_AUTO)
+    if (lexer.curr_token().type() == token::TOK_KW_AUTO)
     {
-        l.consume();
-        return std::make_unique<auto_kw>(curr_token_loc(l));
+        lexer.consume();
+        return std::make_unique<auto_kw>(curr_token_loc(lexer));
     }
-    return parse_unary_expr(l, ctx);
+    return parse_unary_expr(lexer, ctx);
 }

@@ -1,67 +1,69 @@
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 
-ast_ref parse_variable_def_expr(lexer& l, compiler_context& ctx)
+auto parse_variable_def_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {
     // we must consume modifiers
     std::vector<ast_ref> modifiers;
 
-    auto start = l.curr_token().location();
+    auto start = lexer.curr_token().location();
 
-    if (l.curr_token().is(token::TOK_KW_CONSTEVAL))
+    if (lexer.curr_token().is(token::TOK_KW_CONSTEVAL))
     {
-        l.consume();
-        modifiers.push_back(std::make_unique<consteval_kw>(curr_token_loc(l)));
+        lexer.consume();
+        modifiers.push_back(std::make_unique<consteval_kw>(curr_token_loc(lexer)));
     }
     else
     {
-        if (l.curr_token().is(token::TOK_KW_COMPTIME))
+        if (lexer.curr_token().is(token::TOK_KW_COMPTIME))
         {
-            l.consume();
-            modifiers.push_back(std::make_unique<consteval_kw>(curr_token_loc(l)));
+            lexer.consume();
+            modifiers.push_back(std::make_unique<consteval_kw>(curr_token_loc(lexer)));
         }
 
-        if (l.curr_token().is(token::TOK_KW_CONST))
+        if (lexer.curr_token().is(token::TOK_KW_CONST))
         {
-            l.consume();
-            modifiers.push_back(std::make_unique<const_kw>(curr_token_loc(l)));
+            lexer.consume();
+            modifiers.push_back(std::make_unique<const_kw>(curr_token_loc(lexer)));
         }
-        else if (l.curr_token().is(token::TOK_KW_VAR))
+        else if (lexer.curr_token().is(token::TOK_KW_VAR))
         {
-            l.consume();
-            modifiers.push_back(std::make_unique<var_kw>(curr_token_loc(l)));
+            lexer.consume();
+            modifiers.push_back(std::make_unique<var_kw>(curr_token_loc(lexer)));
         }
     }
 
-    if (!l.curr_token().is(token::TOK_IDENTIFIER))
-        report_error_point(l, "expected variable name");
+    if (!lexer.curr_token().is(token::TOK_IDENTIFIER))
+        report_error_point(lexer, "expected variable name");
 
-    auto name = l.curr_token().identifier();
-    l.consume();
+    auto name = lexer.curr_token().identifier();
+    lexer.consume();
 
     bool is_packed = false;
-    if (l.curr_token().is(token::TOK_ELLIPSIS))
+    if (lexer.curr_token().is(token::TOK_ELLIPSIS))
     {
         is_packed = true;
-        l.consume();
+        lexer.consume();
     }
 
-    if (!l.curr_token().is(token::TOK_COLON))
-        report_error_point(l, "expected ':' in variable definition");
-    l.consume();
+    if (!lexer.curr_token().is(token::TOK_COLON))
+        report_error_point(lexer, "expected ':' in variable definition");
+    lexer.consume();
 
-    auto type = parse_type_expr(l, ctx);
+    auto type = parse_type_expr(lexer, ctx);
 
     auto end = type->get_end();
 
     ast_ref init = nullptr;
 
-    if (l.curr_token() == token::OP_ASSIGN)
+    if (lexer.curr_token() == token::OP_ASSIGN)
     {
-        l.consume();
-        init = parse_expr(l, ctx);
-        if(!init)
+        lexer.consume();
+        init = parse_expr(lexer, ctx);
+        if (!init)
+        {
             return nullptr;
+        }
         end = init->get_end();
     }
 

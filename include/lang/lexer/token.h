@@ -77,6 +77,8 @@ public:
         TOK_PAREN_CLOSE,
         TOK_BRACKET_OPEN,
         TOK_BRACKET_CLOSE,
+        TOK_ATTR_OPEN,
+        TOK_ATTR_CLOSE,
         TOK_BRACE_OPEN,
         TOK_BRACE_CLOSE,
         TOK_SEMICOLON,
@@ -119,28 +121,28 @@ public:
 
     constexpr token(const code_location& loc, const code_location& end, types t) : value(std::monostate()), tok(t), loc(loc), end(end) {}
 
-    constexpr types type() const { return tok; }
+    [[nodiscard]] constexpr auto type() const -> types { return tok; }
 
-    constexpr const auto& identifier() const { return std::get<std::string>(value); }
+    [[nodiscard]] constexpr auto identifier() const -> const auto& { return std::get<std::string>(value); }
 
     template <typename T>
-    constexpr const auto& get_literal() const
+    constexpr auto get_literal() const -> const auto&
     {
         return std::get<literal_value<T>>(value);
     }
 
-    constexpr auto op() const { return std::get<operators>(value); }
+    [[nodiscard]] constexpr auto op() const { return std::get<operators>(value); }
 
-    constexpr const code_location& location() const { return loc; }
-    constexpr const code_location& end_location() const { return end; }
-    constexpr code_range range() const { return {loc, end}; }
+    [[nodiscard]] constexpr auto location() const -> const code_location& { return loc; }
+    [[nodiscard]] constexpr auto end_location() const -> const code_location& { return end; }
+    [[nodiscard]] constexpr auto range() const -> code_range { return {loc, end}; }
     template <typename T>
-    constexpr const auto& get_value() const
+    constexpr auto get_value() const -> const auto&
     {
         return std::get<T>(value);
     }
 
-    constexpr bool operator==(operators rhs) const { return type() == TOK_OPERATOR && op() == rhs; }
+    constexpr auto operator==(operators rhs) const -> bool { return type() == TOK_OPERATOR && op() == rhs; }
 
-    constexpr bool is(types t) const { return type() == t; }
+    [[nodiscard]] constexpr auto is(types t) const -> bool { return type() == t; }
 };

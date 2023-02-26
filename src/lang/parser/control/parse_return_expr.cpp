@@ -6,22 +6,24 @@
 #include "lang/lexer/token.h"
 #include "lang/parser/parser.h"
 
-auto parse_return_expr(lexer& l, compiler_context& ctx) -> ast_ref
+auto parse_return_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {
-    auto start = l.curr_token().location();
-    l.consume();
-    if (!l.curr_token().is(token::TOK_PAREN_OPEN))
-        report_error_point(l, "expected '(' after return expression");
+    auto start = lexer.curr_token().location();
+    lexer.consume();
+    if (!lexer.curr_token().is(token::TOK_PAREN_OPEN))
+        report_error_point(lexer, "expected '(' after return expression");
 
-    l.consume();
-    auto ast = parse_expr(l, ctx);
+    lexer.consume();
+    auto ast = parse_expr(lexer, ctx);
     if (!ast)
+    {
         return nullptr;
+    }
 
-    if (!l.curr_token().is(token::TOK_PAREN_CLOSE))
-        report_error_point(l, "expected ')' after return expression");
+    if (!lexer.curr_token().is(token::TOK_PAREN_CLOSE))
+        report_error_point(lexer, "expected ')' after return expression");
 
-    auto end = l.curr_token().end_location();
-    l.consume();
+    auto end = lexer.curr_token().end_location();
+    lexer.consume();
     return std::make_unique<return_expr>(start, end, std::move(ast));
 }

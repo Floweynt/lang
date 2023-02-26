@@ -14,10 +14,10 @@ public:
     {
     }
 
-    constexpr auto get_type() const { return type; }
+    [[nodiscard]] constexpr auto get_type() const { return type; }
 
     template <typename T>
-    T get_value()
+    auto get_value() -> T
     {
         return std::any_cast<T>(value);
     }

@@ -18,8 +18,10 @@ auto do_build()
 
                         })
                  .library("m")
+                 .library("LLVM-16")
                  .include_dir(source_root() / "include/")
                  .include_dir(source_root() / "deps/stacktrace/include")
+                 .include_dir(source_root() / "deps/magic_enum/include/")
                  .include_dir(source_root() / "deps/stacktrace/build")
                  .set_build_type(metabuild::DEBUG)
                  .parallelize()
@@ -38,14 +40,18 @@ auto do_build()
 auto do_build_san()
 {
     std::vector<std::filesystem::path> p;
-    auto e = executable("compiler-sanitized", metabuild::compiler_flags::C11, metabuild::compiler_flags::CXX20,
-                        {.cxx = compiler_flags().add_flags("-fsanitize=address,undefined")})
+    auto e = executable("compiler-san", metabuild::compiler_flags::C11, metabuild::compiler_flags::CXX20,
+                        {.cxx = compiler_flags().add_flags("-DFMT_HEADER_ONLY").add_flags("-fsanitize=address,undefined")})
                  .library("m")
-                 .library("fmt")
+                 .library("LLVM-16")
                  .include_dir(source_root() / "include/")
-                 .set_build_type(metabuild::DEBUG)
+                 .include_dir(source_root() / "deps/stacktrace/include")
+                 .include_dir(source_root() / "deps/magic_enum/include/")
+                 .include_dir(source_root() / "deps/stacktrace/build")
                  .library("asan")
                  .library("ubsan")
+
+                 .set_build_type(metabuild::DEBUG)
                  .parallelize()
                  .libstdcxx();
 

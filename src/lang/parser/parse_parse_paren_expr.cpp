@@ -1,20 +1,22 @@
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 
-ast_ref parse_paren_expr(lexer& l, compiler_context& ctx)
+auto parse_paren_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {
-    auto start = l.curr_token().location();
-    l.consume();
-    auto expr = parse_expr(l, ctx);
+    auto start = lexer.curr_token().location();
+    lexer.consume();
+    auto expr = parse_expr(lexer, ctx);
 
     if (!expr)
+    {
         return nullptr;
+    }
 
-    if (!l.curr_token().is(token::TOK_PAREN_CLOSE))
-        report_error_point_msg(l, "expected ')', got expression", "insert closing paren");
+    if (!lexer.curr_token().is(token::TOK_PAREN_CLOSE))
+        report_error_point_msg(lexer, "expected ')', got expression", "insert closing paren");
 
-    auto end = l.curr_token().end_location();
-    l.consume();
+    auto end = lexer.curr_token().end_location();
+    lexer.consume();
 
     return std::make_unique<paren_expr>(start, end, std::move(expr));
 }

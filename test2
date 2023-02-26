@@ -1,9 +1,0 @@
-var a: auto = 0x12345678;
-auto main()
-{
-        var v: auto = (if(0) 3; else 4;);
-}
-
-var a: auto = \() {
-    lajsd
-}

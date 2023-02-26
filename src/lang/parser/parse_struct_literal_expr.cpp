@@ -5,27 +5,27 @@
 #include <lang/parser/parser.h>
 #include <memory>
 
-ast_ref parse_struct_literal_expr(lexer& l, compiler_context& ctx)
+auto parse_struct_literal_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {
-    auto start = l.curr_token().location();
-    l.consume();
+    auto start = lexer.curr_token().location();
+    lexer.consume();
 
-    if (!l.curr_token().is(token::TOK_BRACE_OPEN))
-        report_error_point(l, "expected '{' for struct literal");
-    l.consume();
+    if (!lexer.curr_token().is(token::TOK_BRACE_OPEN))
+        report_error_point(lexer, "expected '{' for struct literal");
+    lexer.consume();
 
     std::vector<ast_ref> members;
 
-    while (!l.curr_token().is(token::TOK_BRACE_CLOSE))
+    while (!lexer.curr_token().is(token::TOK_BRACE_CLOSE))
     {
-        auto decl = parse_variable_def_expr(l, ctx);
-        if (!l.curr_token().is(token::TOK_SEMICOLON))
-            report_error_point(l, "expected ';' at end of member-variable definition");
-        l.consume();
+        auto decl = parse_variable_def_expr(lexer, ctx);
+        if (!lexer.curr_token().is(token::TOK_SEMICOLON))
+            report_error_point(lexer, "expected ';' at end of member-variable definition");
+        lexer.consume();
 
         members.push_back(std::move(decl));
     }
-    auto end = l.curr_token().end_location();
-    l.consume();
+    auto end = lexer.curr_token().end_location();
+    lexer.consume();
     return std::make_unique<struct_literal_expr>(start, end, std::move(members));
 }

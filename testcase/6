@@ -1,6 +1,0 @@
-auto main()
-{
-        var fun: auto = \(var a: int, var b: int) { a + b;};
-
-        fun(1,2);
-}

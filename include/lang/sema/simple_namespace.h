@@ -14,9 +14,13 @@ public:
     {
     }
 
-    virtual type_descriptor invoke_result(sema_ctx& ctx, const std::vector<type_descriptor>& desc) const override;
-    virtual type_descriptor resolve_name(sema_ctx& ctx, const std::string& name) const override;
-    virtual ct_value constexpr_eval_resolve_name(sema_ctx& ctx, const std::string& name) const override;
+    auto invoke_result(sema_ctx& ctx, const std::vector<type_descriptor>& desc) const -> type_descriptor override;
+    auto resolve_name(sema_ctx& ctx, const std::string& name) const -> type_descriptor override;
+    auto constexpr_eval_resolve_name(sema_ctx& ctx, const std::string& name) const -> ct_value override;
 
-    simple_namespace* get_or_create_subnamespace(sema_ctx& ctx, const std::string& name);
+    inline auto get_llvm_type(codegen_ctx& /*context*/) const -> llvm::Type* override
+    {
+        throw std::runtime_error("internal error: namespace should not be codegen");
+    }
+    auto get_or_create_subnamespace(sema_ctx& ctx, const std::string& name) -> simple_namespace*;
 };

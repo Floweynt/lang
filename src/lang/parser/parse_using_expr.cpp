@@ -3,44 +3,52 @@
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 
-ast_ref parse_using_expr(lexer& l, compiler_context& ctx)
+auto parse_using_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {
-    auto start = l.curr_token().location();
-    l.consume();
+    auto start = lexer.curr_token().location();
+    lexer.consume();
 
-    if (!l.curr_token().is(token::TOK_IDENTIFIER))
-        report_error_point(l, "expected type name");
-    auto name = l.curr_token().identifier();
-    l.consume();
+    if (!lexer.curr_token().is(token::TOK_IDENTIFIER))
+        report_error_point(lexer, "expected type name");
+    auto name = lexer.curr_token().identifier();
+    lexer.consume();
 
     std::vector<ast_ref> args;
 
-    if (l.curr_token().is(token::TOK_PAREN_OPEN))
+    if (lexer.curr_token().is(token::TOK_PAREN_OPEN))
     {
-        l.consume();
+        lexer.consume();
         while (true)
         {
-            if (auto arg = parse_variable_def_expr(l, ctx))
+            if (auto arg = parse_variable_def_expr(lexer, ctx))
+            {
                 args.push_back(std::move(arg));
+            }
             else
+            {
                 return nullptr;
+            }
 
-            if (l.curr_token().type() == token::TOK_PAREN_CLOSE)
+            if (lexer.curr_token().type() == token::TOK_PAREN_CLOSE)
+            {
                 break;
+            }
 
-            if (l.curr_token().type() != token::TOK_COMMA)
-                report_error_point_msg(l, "expected ')' or ',' in parameter list", "insert comma");
-            l.consume();
+            if (lexer.curr_token().type() != token::TOK_COMMA)
+                report_error_point_msg(lexer, "expected ')' or ',' in parameter list", "insert comma");
+            lexer.consume();
         }
-        l.consume();
+        lexer.consume();
     }
 
-    if (l.curr_token() != token::OP_ASSIGN)
-        report_error_point(l, "expected '='");
-    l.consume();
-    auto type = parse_expr(l, ctx);
+    if (lexer.curr_token() != token::OP_ASSIGN)
+        report_error_point(lexer, "expected '='");
+    lexer.consume();
+    auto type = parse_expr(lexer, ctx);
     if (!type)
+    {
         return nullptr;
+    }
 
     auto end = type->get_end();
 

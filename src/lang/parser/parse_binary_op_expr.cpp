@@ -59,29 +59,35 @@ static binary_op_type tok_to_bin_op(token::operators op)
     return (binary_op_type)TOK_TO_BIN_OP[op];
 }
 
-ast_ref parse_binary_op_expr(lexer& l, compiler_context& ctx, int expr_prec, ast_ref lhs)
+auto parse_binary_op_expr(lexer& lexer, compiler_context& ctx, int expr_prec, ast_ref lhs) -> ast_ref
 {
     while (true)
     {
-        int curr_prec = get_tok_prec(l.curr_token());
+        int curr_prec = get_tok_prec(lexer.curr_token());
 
         if (curr_prec < expr_prec)
+        {
             return lhs;
+        }
 
-        auto op = l.curr_token().op();
-        auto op_range = l.curr_token().range();
-        l.consume();
+        auto op = lexer.curr_token().op();
+        auto op_range = lexer.curr_token().range();
+        lexer.consume();
 
-        auto rhs = parse_unary_expr(l, ctx);
+        auto rhs = parse_unary_expr(lexer, ctx);
         if (!rhs)
+        {
             return nullptr;
+        }
 
-        int next_prec = get_tok_prec(l.curr_token());
+        int next_prec = get_tok_prec(lexer.curr_token());
         if (curr_prec < next_prec)
         {
-            rhs = parse_binary_op_expr(l, ctx, curr_prec + 1, std::move(rhs));
+            rhs = parse_binary_op_expr(lexer, ctx, curr_prec + 1, std::move(rhs));
             if (!rhs)
+            {
                 return nullptr;
+            }
         }
 
         lhs = std::make_unique<binary_op_expr>(tok_to_bin_op(op), op_range, std::move(lhs), std::move(rhs));

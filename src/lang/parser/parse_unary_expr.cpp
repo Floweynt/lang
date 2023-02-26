@@ -1,6 +1,6 @@
 #include <lang/parser/parser.h>
 
-static unary_op_type tok_to_unary_op(token::operators op)
+static auto tok_to_unary_op(token::operators op) -> unary_op_type
 {
     static constexpr int TOK_TO_BIN_OP[] = {
         -1, OP_INC, -1, -1, -1, -1, -1, -1,        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -10,17 +10,21 @@ static unary_op_type tok_to_unary_op(token::operators op)
     return (unary_op_type)TOK_TO_BIN_OP[op];
 }
 
-ast_ref parse_unary_expr(lexer& l, compiler_context& ctx)
+auto parse_unary_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {
-    if (!l.curr_token().is(token::TOK_OPERATOR))
-        return parse_primary_expr(l, ctx);
+    if (!lexer.curr_token().is(token::TOK_OPERATOR))
+    {
+        return parse_primary_expr(lexer, ctx);
+    }
 
-    auto start = l.curr_token().location();
-    auto op = l.curr_token().op();
-    auto op_range = l.curr_token().range();
-    l.consume();
+    auto start = lexer.curr_token().location();
+    auto op = lexer.curr_token().op();
+    auto op_range = lexer.curr_token().range();
+    lexer.consume();
 
-    if (auto operand = parse_unary_expr(l, ctx))
+    if (auto operand = parse_primary_expr(lexer, ctx))
+    {
         return std::make_unique<unary_op_expr>(start, operand->get_end(), op_range, tok_to_unary_op(op), std::move(operand));
+    }
     return nullptr;
 }

@@ -1,11 +1,11 @@
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 
-ast_ref parse_identifier_expr(lexer& l, compiler_context& ctx)
+auto parse_identifier_expr(lexer& lexer, compiler_context& /*ctx*/) -> ast_ref
 {
-    auto start = l.curr_token().location();
-    std::string id_name = l.curr_token().identifier();
+    auto start = lexer.curr_token().location();
+    std::string id_name = lexer.curr_token().identifier();
 
-    l.consume();
-    return std::make_unique<name_ref_expr>(start, l.curr_token().end_location(), id_name);
+    lexer.consume();
+    return std::make_unique<name_ref_expr>(start, lexer.curr_token().end_location(), id_name);
 }

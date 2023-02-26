@@ -42,5 +42,5 @@ public:
 
     constexpr void report_error(const error& e) { errors.push_back(e); }
 
-    constexpr const auto& get_errors() const { return errors; }
+    [[nodiscard]] constexpr auto get_errors() const -> const auto& { return errors; }
 };

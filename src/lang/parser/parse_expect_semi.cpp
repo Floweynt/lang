@@ -1,10 +1,10 @@
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 
-ast_ref expect_semi(ast_ref r, lexer& l, compiler_context& ctx)
+auto expect_semi(ast_ref ref, lexer& lexer, compiler_context& ctx) -> ast_ref
 {
-    if (!l.curr_token().is(token::TOK_SEMICOLON))
-        report_error_point(l, "expected semicolon at the end of a statement");
-    l.consume();
-    return r;
+    if (!lexer.curr_token().is(token::TOK_SEMICOLON))
+        report_error_point(lexer, "expected semicolon at the end of a statement");
+    lexer.consume();
+    return ref;
 }

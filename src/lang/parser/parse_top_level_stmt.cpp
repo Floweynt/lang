@@ -1,22 +1,22 @@
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 
-ast_ref parse_top_level_stmt(lexer& l, compiler_context& ctx)
+auto parse_top_level_stmt(lexer& lexer, compiler_context& ctx) -> ast_ref
 {
-    switch (l.curr_token().type())
+    switch (lexer.curr_token().type())
     {
     case token::TOK_KW_VAR:
     case token::TOK_KW_CONST:
     case token::TOK_KW_CONSTEVAL:
     case token::TOK_KW_COMPTIME:
-        return expect_semi(parse_variable_def_expr(l, ctx), l, ctx);
+        return expect_semi(parse_variable_def_expr(lexer, ctx), lexer, ctx);
     case token::TOK_KW_USING:
-        return expect_semi(parse_using_expr(l, ctx), l, ctx);
+        return expect_semi(parse_using_expr(lexer, ctx), lexer, ctx);
     case token::TOK_KW_NAMESPACE:
-        return parse_namespace_stmt(l, ctx);
+        return parse_namespace_stmt(lexer, ctx);
     case token::TOK_KW_AUTO:
-        return parse_function_decl_stmt(l, ctx);
+        return parse_function_decl_stmt(lexer, ctx);
     default:
-        report_error_point(l, "expected top-level statement");
+        report_error_point(lexer, "expected top-level statement");
     }
 }

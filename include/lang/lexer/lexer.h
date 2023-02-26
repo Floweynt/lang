@@ -8,9 +8,11 @@
 struct lex_context
 {
     std::istream& in;
-    size_t line, col, bytes;
-    std::vector<char> buffer;
-    bool should_consume_new_ch;
+    std::deque<char> buffer;
+    size_t peek_index;
+
+    size_t bytes, col, line;
+    size_t pbytes, pcol, pline;
 
     compiler_context& ctx;
 };
@@ -28,5 +30,5 @@ class lexer
 public:
     lexer(compiler_context& ctx);
     void consume();
-    const token& curr_token();
+    auto curr_token() -> const token&;
 };

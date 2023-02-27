@@ -67,6 +67,19 @@ public:
     }
 
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override {}
+    inline auto serialize() const -> std::string override
+    {
+        if constexpr (std::is_same_v<T, std::string>)
+        {
+            return fmt::format("(string_literal \"{}\")", val);
+        }
+        else if constexpr (std::is_same_v<T, intmax_t>)
+        {
+            return fmt::format("(integer_literal \"{}\")", val);
+        }
+
+        return fmt::format("(numeric_literal \"{}\")", val);
+    }
 
     constexpr auto get_literal() -> const auto& { return literal; }
     constexpr auto get_value() -> const auto& { return val; }

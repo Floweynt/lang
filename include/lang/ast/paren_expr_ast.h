@@ -14,6 +14,6 @@ protected:
 public:
     inline paren_expr(code_location start, code_location end, ast_ref body) : base_ast(start, end, PAREN_EXPR), body(std::move(body)) {}
     inline void visit_children(const std::function<void(const base_ast&)>& consumer) const override { consumer(*body); }
-
+    inline auto serialize() const -> std::string override { return fmt::format("(parenthesized_expression {})", body->serialize()); }
     [[nodiscard]] constexpr auto get_body() const -> const auto& { return body; }
 };

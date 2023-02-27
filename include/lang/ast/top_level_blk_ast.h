@@ -13,6 +13,7 @@ protected:
 public:
     top_level_blk(code_location start, code_location end, std::vector<ast_ref> statements);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 
     [[nodiscard]] constexpr auto get_statements() const -> const auto& { return statements; }
 };

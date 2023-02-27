@@ -7,6 +7,13 @@ auto parse_function_decl_stmt(lexer& lexer, compiler_context& ctx) -> ast_ref
 {
     auto start = lexer.curr_token().location();
     lexer.consume();
+
+    ast_ref attributes;
+    if (lexer.curr_token().is(token::TOK_ATTR_OPEN))
+    {
+        attributes = parse_attribute_list(lexer, ctx);
+    }
+
     if (!lexer.curr_token().is(token::TOK_IDENTIFIER))
         report_error_point(lexer, "expected name in function decl");
 
@@ -54,6 +61,14 @@ auto parse_function_decl_stmt(lexer& lexer, compiler_context& ctx) -> ast_ref
         return_type = parse_type_expr(lexer, ctx);
     }
 
+    if (lexer.curr_token().is(token::TOK_SEMICOLON))
+    {
+        auto end = lexer.curr_token().end_location();
+        lexer.consume();
+
+        return std::make_unique<function_decl_stmt>(start, end, std::move(args), std::move(return_type), nullptr, name, std::move(attributes));
+    }
+
     if (!lexer.curr_token().is(token::TOK_BRACE_OPEN))
         report_error_point(lexer, "expected '{' in function decl to declare body");
 
@@ -63,5 +78,6 @@ auto parse_function_decl_stmt(lexer& lexer, compiler_context& ctx) -> ast_ref
         return nullptr;
     }
 
-    return std::make_unique<function_decl_stmt>(start, body->get_end(), std::move(args), std::move(return_type), std::move(body), name);
+    return std::make_unique<function_decl_stmt>(start, body->get_end(), std::move(args), std::move(return_type), std::move(body), name,
+                                                std::move(attributes));
 }

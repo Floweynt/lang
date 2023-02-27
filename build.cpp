@@ -23,6 +23,7 @@ auto do_build()
                  .include_dir(source_root() / "deps/stacktrace/include")
                  .include_dir(source_root() / "deps/magic_enum/include/")
                  .include_dir(source_root() / "deps/stacktrace/build")
+                 .include_dir(source_root() / "deps/argparse/include/")
                  .set_build_type(metabuild::DEBUG)
                  .parallelize()
                  .libstdcxx();

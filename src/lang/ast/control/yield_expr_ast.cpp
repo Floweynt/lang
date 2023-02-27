@@ -13,3 +13,5 @@ auto yield_expr::do_codegen(codegen_ctx& context) const -> codegen_value
     value->codegen(context);
     return context.get_void_val();
 }
+
+auto yield_expr::serialize() const -> std::string { return fmt::format("(yield_expression {})", value->serialize()); }

@@ -14,7 +14,7 @@ auto parse_top_level_stmt(lexer& lexer, compiler_context& ctx) -> ast_ref
         return expect_semi(parse_using_expr(lexer, ctx), lexer, ctx);
     case token::TOK_KW_NAMESPACE:
         return parse_namespace_stmt(lexer, ctx);
-    case token::TOK_KW_AUTO:
+    case token::TOK_KW_FN:
         return parse_function_decl_stmt(lexer, ctx);
     default:
         report_error_point(lexer, "expected top-level statement");

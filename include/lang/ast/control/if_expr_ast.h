@@ -14,4 +14,5 @@ protected:
 public:
     if_expr(code_location start, code_location end, std::vector<std::pair<ast_ref, ast_ref>> branches, ast_ref else_branch);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 };

@@ -128,6 +128,8 @@ public:
     void add_conversion(type_descriptor from, type_descriptor to);
 
     constexpr auto get_compiler_ctx() -> compiler_context& { return compiler_ctx; }
+
+    auto resolve_attribtue(const std::string& name, const std::vector<type_descriptor>& desc) -> bool;
 };
 
 struct semantic_analysis_result

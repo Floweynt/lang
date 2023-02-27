@@ -1,7 +1,9 @@
 #include "lang/ast/namespace_stmt_ast.h"
 #include "lang/codegen/codegen_ctx.h"
 #include "lang/sema/types.h"
+#include <fmt/ranges.h>
 #include <llvm/IR/Constants.h>
+#include <ranges>
 
 auto namespace_stmt::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
@@ -34,4 +36,10 @@ auto namespace_stmt::do_codegen(codegen_ctx& context) const -> codegen_value
         stmt->codegen(context);
     }
     return codegen_value::make_null();
+}
+
+auto namespace_stmt::serialize() const -> std::string
+{
+    return fmt::format("(namespace_statement ({}))",
+                       fmt::join(statements | std::ranges::views::transform([](const ast_ref& ref) { return ref->serialize(); }), " "));
 }

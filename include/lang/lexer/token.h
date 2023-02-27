@@ -89,6 +89,7 @@ public:
 
         // keywords
         TOK_KW_AUTO,
+        TOK_KW_FN,
         TOK_KW_CONST,
         TOK_KW_VAR,
         TOK_KW_CONSTEVAL,
@@ -117,12 +118,10 @@ private:
     code_location end;
 
 public:
-    constexpr token(const code_location& loc, const code_location& end, types t, const auto& val) : value(val), tok(t), loc(loc), end(end) {}
-
-    constexpr token(const code_location& loc, const code_location& end, types t) : value(std::monostate()), tok(t), loc(loc), end(end) {}
+    constexpr token(const code_location& loc, const code_location& end, types tok, const auto& val) : value(val), tok(tok), loc(loc), end(end) {}
+    constexpr token(const code_location& loc, const code_location& end, types tok) : value(std::monostate()), tok(tok), loc(loc), end(end) {}
 
     [[nodiscard]] constexpr auto type() const -> types { return tok; }
-
     [[nodiscard]] constexpr auto identifier() const -> const auto& { return std::get<std::string>(value); }
 
     template <typename T>
@@ -136,13 +135,19 @@ public:
     [[nodiscard]] constexpr auto location() const -> const code_location& { return loc; }
     [[nodiscard]] constexpr auto end_location() const -> const code_location& { return end; }
     [[nodiscard]] constexpr auto range() const -> code_range { return {loc, end}; }
+
     template <typename T>
     constexpr auto get_value() const -> const auto&
     {
         return std::get<T>(value);
     }
 
-    constexpr auto operator==(operators rhs) const -> bool { return type() == TOK_OPERATOR && op() == rhs; }
+    template <typename T>
+    [[nodiscard]] constexpr auto has_value() const -> bool
+    {
+        return std::holds_alternative<T>(value);
+    }
 
-    [[nodiscard]] constexpr auto is(types t) const -> bool { return type() == t; }
+    constexpr auto operator==(operators rhs) const -> bool { return type() == TOK_OPERATOR && op() == rhs; }
+    [[nodiscard]] constexpr auto is(types tok) const -> bool { return type() == tok; }
 };

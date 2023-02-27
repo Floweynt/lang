@@ -17,7 +17,7 @@ public:
     [[nodiscard]] constexpr auto get_type() const { return type; }
 
     template <typename T>
-    auto get_value() -> T
+    auto get_value() const -> T
     {
         return std::any_cast<T>(value);
     }

@@ -1,7 +1,9 @@
 #include "lang/ast/control/if_expr_ast.h"
 #include "lang/lexer/code_location.h"
 #include "lang/sema/types.h"
+#include <fmt/ranges.h>
 #include <optional>
+#include <ranges>
 
 auto if_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
@@ -73,3 +75,13 @@ void if_expr::visit_children(const std::function<void(const base_ast&)>& consume
 }
 
 auto if_expr::do_codegen(codegen_ctx& context) const -> codegen_value { throw std::runtime_error("todo: implement if_expr codegen"); }
+
+auto if_expr::serialize() const -> std::string
+{
+    return fmt::format("(if_expression ({}) {})",
+                       fmt::join(branches | std::views::transform([](const std::pair<ast_ref, ast_ref>& ref) {
+                                     return fmt::format("({} {})", ref.first->serialize(), ref.second->serialize());
+                                 }),
+                                 " "),
+                       else_branch ? else_branch->serialize() : "null");
+}

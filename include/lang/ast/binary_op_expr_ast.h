@@ -19,6 +19,7 @@ protected:
 public:
     binary_op_expr(binary_op_type type, code_range operator_range, ast_ref lhs, ast_ref rhs);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 
     // getters
     [[nodiscard]] constexpr auto get_lhs() const -> const auto& { return lhs; }

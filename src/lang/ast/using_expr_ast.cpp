@@ -1,5 +1,7 @@
 #include "lang/ast/using_expr_ast.h"
 #include "lang/sema/types.h"
+#include <fmt/ranges.h>
+#include <ranges>
 #include <stdexcept>
 #include <utility>
 
@@ -37,4 +39,10 @@ void using_expr::visit_children(const std::function<void(const base_ast&)>& cons
     {
         consumer(*arg);
     }
+}
+
+auto using_expr::serialize() const -> std::string
+{
+    return fmt::format("(using_statement \"{}\" {} ({}))", name, type->serialize(),
+                       fmt::join(args | std::views::transform([](const ast_ref& ref) { return ref->serialize(); }), " "));
 }

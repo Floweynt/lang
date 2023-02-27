@@ -19,3 +19,5 @@ auto char_literal_expr::do_codegen(codegen_ctx& context) const -> codegen_value
     return codegen_value::make_constant(
         get_sema_result().ty, llvm::ConstantInt::get(context.get_sema_ctx().langtype(primitive_type::CHAR_B8)->get_llvm_type(context), val));
 }
+
+auto char_literal_expr::serialize() const -> std::string { return fmt::format("(character_literal '{}')", val); }

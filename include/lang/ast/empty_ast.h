@@ -15,4 +15,5 @@ protected:
 public:
     inline empty_ast(code_location start, code_location end) : base_ast(start, end, EMPTY_STMT) {}
     inline void visit_children(const std::function<void(const base_ast&)>& consumer) const override {}
+    inline auto serialize() const -> std::string override { return "(empty_ast)"; }
 };

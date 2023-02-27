@@ -15,6 +15,7 @@ protected:
 public:
     block_expr(code_location start, code_location end, std::vector<ast_ref> statements);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 
     auto deduce_return_type(sema_ctx& context) -> type_descriptor;
     auto deduce_break_type(sema_ctx& context) -> type_descriptor;

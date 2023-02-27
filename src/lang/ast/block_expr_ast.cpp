@@ -1,5 +1,3 @@
-
-
 #include "lang/ast/block_expr_ast.h"
 #include "lang/ast/base_ast.h"
 #include "lang/ast/control/return_expr_ast.h"
@@ -7,7 +5,9 @@
 #include "lang/raii_guard.h"
 #include "lang/sema/types.h"
 #include "lang/y_comb.h"
+#include <fmt/ranges.h>
 #include <functional>
+#include <ranges>
 
 block_expr::block_expr(code_location start, code_location end, std::vector<ast_ref> statements)
     : base_ast(start, end, BLOCK_EXPR, false), statements(std::move(statements))
@@ -138,4 +138,10 @@ auto block_expr::do_codegen(codegen_ctx& context) const -> codegen_value
     }
 
     return return_val;
+}
+
+auto block_expr::serialize() const -> std::string
+{
+    return fmt::format("(block_expression ({}))",
+                       fmt::join(statements | std::views::transform([](const ast_ref& ref) { return ref->serialize(); }), " "));
 }

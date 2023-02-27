@@ -16,6 +16,7 @@ protected:
 public:
     unary_op_expr(code_location start, code_location end, code_range operator_range, unary_op_type type, ast_ref expr);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 
     [[nodiscard]] constexpr auto get_operator() const { return op; }
     [[nodiscard]] constexpr auto get_expr() const -> const auto& { return expr; }

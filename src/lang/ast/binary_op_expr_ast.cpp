@@ -254,3 +254,8 @@ auto binary_op_expr::do_codegen(codegen_ctx& context) const -> codegen_value
 
     return value;
 }
+
+auto binary_op_expr::serialize() const -> std::string
+{
+    return fmt::format("(binary_op_expression \"{}\" {} {})", OPERATOR_SYMBOLS[op], lhs->serialize(), rhs->serialize());
+}

@@ -1,3 +1,4 @@
+#include "lang/lexer/code_location.h"
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 
@@ -37,6 +38,8 @@ auto parse_variable_def_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
         report_error_point(lexer, "expected variable name");
 
     auto name = lexer.curr_token().identifier();
+    code_location end = lexer.curr_token().end_location();
+
     lexer.consume();
 
     bool is_packed = false;
@@ -46,13 +49,14 @@ auto parse_variable_def_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
         lexer.consume();
     }
 
-    if (!lexer.curr_token().is(token::TOK_COLON))
-        report_error_point(lexer, "expected ':' in variable definition");
-    lexer.consume();
+    ast_ref type;
 
-    auto type = parse_type_expr(lexer, ctx);
-
-    auto end = type->get_end();
+    if (lexer.curr_token().is(token::TOK_COLON))
+    {
+        lexer.consume();
+        type = parse_type_expr(lexer, ctx);
+        end = type->get_end();
+    }
 
     ast_ref init = nullptr;
 

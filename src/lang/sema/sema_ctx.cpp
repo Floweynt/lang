@@ -1,5 +1,5 @@
-#include "lang/ast/operator_types.h"
 #include "lang/sema/sema_ctx.h"
+#include "lang/ast/operator_types.h"
 #include "lang/sema/simple_namespace.h"
 #include "lang/sema/types.h"
 #include <algorithm>
@@ -200,11 +200,15 @@ auto sema_ctx::make_simple_lambda_function(type_descriptor return_ty, const std:
 {
     if (!lambda_types.contains({return_ty, rhs}))
     {
-        lambda_types[{return_ty, rhs}] = add_type(std::make_unique<trivial_function_type>(
-            return_ty->get_name() + "(" +
-                std::accumulate(rhs.begin(), rhs.end(), std::string(""), [](std::string a, type_descriptor b) { return a + ", " + b->get_name(); }) +
-                ")",
-            return_ty, rhs));
+        std::string name;
+
+        if (!rhs.empty())
+        {
+            name = std::accumulate(rhs.begin() + 1, rhs.end(), rhs.front()->get_name(),
+                                   [](const std::string& a, type_descriptor b) { return a + ", " + b->get_name(); });
+        }
+
+        lambda_types[{return_ty, rhs}] = add_type(std::make_unique<trivial_function_type>(return_ty->get_name() + "(" + name + ")", return_ty, rhs));
     }
 
     return lambda_types.at({return_ty, rhs});
@@ -291,3 +295,5 @@ auto sema_ctx::get_comptime_value(const std::string& str) -> ct_value
 
     return {langtype(primitive_type::ERROR), nullptr};
 }
+
+auto sema_ctx::resolve_attribtue(const std::string& /*name*/, const std::vector<type_descriptor>& /*desc*/) -> bool { return false; }

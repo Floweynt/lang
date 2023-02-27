@@ -1,7 +1,9 @@
 #include "lang/ast/function_call_expr_ast.h"
 #include "lang/codegen/codegen_value.h"
 #include "lang/sema/types.h"
+#include <fmt/ranges.h>
 #include <optional>
+#include <ranges>
 
 function_call_expr::function_call_expr(code_location start, code_location end, ast_ref callee, std::vector<ast_ref> args)
     : base_ast(start, end, FUNCTION_CALL_EXPR), callee(std::move(callee)), args(std::move(args))
@@ -74,4 +76,10 @@ auto function_call_expr::do_codegen(codegen_ctx& context) const -> codegen_value
     std::vector<codegen_value> values(args.size());
     std::transform(args.begin(), args.end(), values.begin(), [&context](const ast_ref& ast) { return ast->codegen(context); });
     return callee->get_sema_result().ty->invoke_codegen(context, callee->codegen(context), values);
+}
+
+auto function_call_expr::serialize() const -> std::string
+{
+    return fmt::format("(function_call_expression {} ({}))", callee->serialize(),
+                       fmt::join(args | std::ranges::views::transform([](const ast_ref& entry) { return entry->serialize(); }), " "));
 }

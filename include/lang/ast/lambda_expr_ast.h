@@ -15,6 +15,7 @@ protected:
 public:
     lambda_expr(code_location start, code_location end, std::vector<ast_ref> args, ast_ref return_type, ast_ref body);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 
     [[nodiscard]] constexpr auto get_args() const -> const auto& { return args; }
     [[nodiscard]] constexpr auto get_return_type() -> const auto& { return return_type; }

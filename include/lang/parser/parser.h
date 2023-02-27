@@ -8,6 +8,7 @@
 auto parse(lexer& lexer, compiler_context& ctx) -> ast_ref;
 
 auto parse_binary_op_expr(lexer& lexer, compiler_context& ctx, int expr_prec, ast_ref lhs) -> ast_ref;
+auto parse_attribute_list(lexer& lexer, compiler_context& ctx) -> ast_ref;
 auto parse_block_expr(lexer& lexer, compiler_context& ctx) -> ast_ref;
 auto parse_char_literal_expr(lexer& lexer, compiler_context& ctx) -> ast_ref;
 auto parse_expr(lexer& lexer, compiler_context& ctx) -> ast_ref;

@@ -39,7 +39,7 @@ auto while_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
 }
 
 while_expr::while_expr(code_location start, code_location end, ast_ref condition, ast_ref body, ast_ref else_branch)
-    : base_ast(start, end, IF_EXPR, false), condition(std::move(condition)), body(std::move(body)), else_branch(std::move(else_branch))
+    : base_ast(start, end, WHILE_EXPR, false), condition(std::move(condition)), body(std::move(body)), else_branch(std::move(else_branch))
 {
 }
 
@@ -54,3 +54,8 @@ void while_expr::visit_children(const std::function<void(const base_ast&)>& cons
 }
 
 auto while_expr::do_codegen(codegen_ctx& context) const -> codegen_value { throw std::runtime_error("todo: implement while codegen"); }
+
+auto while_expr::serialize() const -> std::string
+{
+    return fmt::format("(while_expression {} {} {})", condition->serialize(), body->serialize(), else_branch ? else_branch->serialize() : "null");
+}

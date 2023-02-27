@@ -13,6 +13,7 @@ protected:
 public:
     char_literal_expr(code_location start, code_location end, char val);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 
     [[nodiscard]] constexpr auto get_value() const { return val; }
 };

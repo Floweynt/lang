@@ -2,7 +2,9 @@
 #include "lang/codegen/codegen_ctx.h"
 #include "lang/sema/types.h"
 #include <bits/ranges_algo.h>
+#include <fmt/ranges.h>
 #include <llvm/IR/BasicBlock.h>
+#include <ranges>
 
 auto top_level_blk::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
@@ -34,4 +36,10 @@ auto top_level_blk::do_codegen(codegen_ctx& context) const -> codegen_value
         stmt->codegen(context);
     }
     return codegen_value::make_null();
+}
+
+auto top_level_blk::serialize() const -> std::string
+{
+    return fmt::format("(top_level_block ({}))",
+                       fmt::join(statements | std::ranges::views::transform([](const ast_ref& ref) { return ref->serialize(); }), " "));
 }

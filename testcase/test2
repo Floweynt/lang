@@ -1,0 +1,22 @@
+using int = @lang::types::integral::signed::b32;
+
+fn put_int(var value: int) -> int;
+
+fn func(var p1: int, var p2: int)
+{
+    var sum = p1 + p2;
+    sum = p1 - p2;
+    return(p2 * sum);
+    return(p1 * sum);
+}
+
+fn main()
+{
+    var i = 1;
+    i = 12;
+
+    var c: int = func(i, 2);
+    var d: int = (\(var p1: int, var p2: int) { return(p1 + p2); })(c, i);
+
+    put_int(d);
+}

@@ -20,4 +20,5 @@ protected:
 public:
     using_expr(code_location start, code_location end, std::string name, ast_ref initializer, std::vector<ast_ref> args);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 };

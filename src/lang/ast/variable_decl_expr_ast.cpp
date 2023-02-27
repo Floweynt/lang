@@ -2,6 +2,8 @@
 #include "lang/ast/base_ast.h"
 #include "lang/codegen/codegen_value.h"
 #include "lang/sema/types.h"
+#include <fmt/ranges.h>
+#include <ranges>
 #include <stdexcept>
 #include <utility>
 
@@ -9,7 +11,7 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
 {
     type_descriptor type = nullptr;
 
-    if (ty->get_ast_kind() == AUTO_KW)
+    if (!ty || ty->get_ast_kind() == AUTO_KW)
     {
         if (!initializer)
         {
@@ -59,7 +61,7 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
         return {type, false};
     }
 
-    return {type, true};
+    return {type, initializer ? initializer->semantic_analysis(context).is_valid : true};
 }
 
 variable_decl_expr::variable_decl_expr(code_location start, code_location end, std::string name, std::vector<ast_ref> modifiers, ast_ref ty,
@@ -75,7 +77,10 @@ void variable_decl_expr::visit_children(const std::function<void(const base_ast&
     {
         consumer(*modifier);
     }
-    consumer(*ty);
+    if (ty)
+    {
+        consumer(*ty);
+    }
     if (initializer)
     {
         consumer(*initializer);
@@ -88,4 +93,11 @@ auto variable_decl_expr::do_codegen(codegen_ctx& context) const -> codegen_value
                                          "local_" + name);
     context.add_variable(name, var);
     return var;
+}
+
+auto variable_decl_expr::serialize() const -> std::string
+{
+    return fmt::format("(variable_decl_expression \"{}\" {} ({}) {} {})", name, is_packed,
+                       fmt::join(modifiers | std::views::transform([](const ast_ref& ref) { return ref->serialize(); }), " "),
+                       ty ? ty->serialize() : "null", initializer ? initializer->serialize() : "null");
 }

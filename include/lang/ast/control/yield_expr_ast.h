@@ -13,6 +13,7 @@ protected:
 public:
     yield_expr(code_location start, code_location end, ast_ref value) : base_ast(start, end, YIELD_EXPR), value(std::move(value)) {}
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 
     [[nodiscard]] constexpr auto get_value() const -> const auto& { return value; }
 };

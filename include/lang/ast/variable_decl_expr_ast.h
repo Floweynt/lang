@@ -18,6 +18,7 @@ public:
     variable_decl_expr(code_location start, code_location end, std::string name, std::vector<ast_ref> modifiers, ast_ref ty, ast_ref initializer,
                        bool is_packed);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
+    auto serialize() const -> std::string override;
 
     constexpr auto get_name() const -> const auto& { return name; }
     constexpr auto get_modifiers() const -> const auto& { return modifiers; }

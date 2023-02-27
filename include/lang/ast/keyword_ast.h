@@ -11,6 +11,7 @@
         inline void visit_children(const std::function<void(const base_ast&)>& /* */) const override {}                                              \
         inline auto do_semantic_analysis(sema_ctx& /* */) const -> semantic_analysis_result override { return {nullptr, false}; }                    \
         inline auto do_codegen(codegen_ctx& /* */) const -> codegen_value override { return codegen_value::make_null(); }                            \
+        auto serialize() const -> std::string override { return "(" #name "_keyword)"; }                                                             \
     };
 
 MAKE_KEYWORD_AST(auto, AUTO);

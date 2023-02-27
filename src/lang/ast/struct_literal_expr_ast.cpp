@@ -1,5 +1,7 @@
 #include "lang/ast/struct_literal_expr.h"
 #include "lang/sema/types.h"
+#include <fmt/ranges.h>
+#include <ranges>
 #include <stdexcept>
 
 auto struct_literal_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
@@ -27,3 +29,9 @@ void struct_literal_expr::visit_children(const std::function<void(const base_ast
 }
 
 auto struct_literal_expr::do_codegen(codegen_ctx& context) const -> codegen_value { throw std::runtime_error("internal error: do not do codegen"); }
+
+auto struct_literal_expr::serialize() const -> std::string
+{
+    return fmt::format("(struct_literal_expression ({}))",
+                       fmt::join(members | std::ranges::views::transform([](const ast_ref& ref) { return ref->serialize(); }), " "));
+}

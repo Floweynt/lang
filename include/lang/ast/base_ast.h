@@ -40,7 +40,10 @@ enum ast_type
     YIELD_EXPR,
     RETURN_EXPR,
     FUN_DECL_STMT,
-    EMPTY_STMT
+    EMPTY_STMT,
+    ATTRIBUTE_ENTRY_AST,
+    ATTRIBUTE_AST,
+    WHILE_EXPR
 };
 
 inline static constexpr const char* AST_KIND_NAME[] = {
@@ -72,6 +75,9 @@ inline static constexpr const char* AST_KIND_NAME[] = {
     "return_expression",
     "function_decleration_statement",
     "empty_statement",
+    "attribute_entry",
+    "attribute",
+    "while_expression"
 };
 
 class base_ast
@@ -111,7 +117,8 @@ public:
     // virtual functions to be implemented
     // tree iteration
     virtual void visit_children(const std::function<void(const base_ast&)>& consumer) const = 0;
-    // get semantic result
+    virtual auto serialize() const -> std::string = 0;
+
     inline auto semantic_analysis(sema_ctx& context) const -> const auto&
     {
         if (!sema_result)

@@ -39,3 +39,5 @@ unary_op_expr::unary_op_expr(code_location start, code_location end, code_range 
 void unary_op_expr::visit_children(const std::function<void(const base_ast&)>& consumer) const { return consumer(*expr); }
 
 auto unary_op_expr::do_codegen(codegen_ctx& context) const -> codegen_value { throw std::runtime_error("todo: implement"); }
+
+auto unary_op_expr::serialize() const -> std::string { return fmt::format("(unary_op_expression \"\" ({}))", expr->serialize()); }

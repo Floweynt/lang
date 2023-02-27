@@ -27,8 +27,12 @@ class lexer
     token tok;
     size_t index;
 
+    std::vector<token> prev_tokens;
+
 public:
     lexer(compiler_context& ctx);
     void consume();
     auto curr_token() -> const token&;
+
+    [[nodiscard]] constexpr auto get_prev_tokens() const -> const auto& { return prev_tokens; }
 };

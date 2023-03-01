@@ -11,8 +11,9 @@ void return_expr::visit_children(const std::function<void(const base_ast&)>& con
 
 auto return_expr::do_codegen(codegen_ctx& context) const -> codegen_value
 {
-    context.builder().CreateRet(value->codegen(context).get_value(context));
-    context.builder().SetInsertPoint(llvm::BasicBlock::Create(context.llvm_ctx(), "", context.builder().GetInsertBlock()->getParent()));
+    auto return_value = value->codegen(context);
+    context.builder().CreateRet(context.convert_to(context.get_func_return_ty(), return_value).get_value(context));
+    context.insert_to_new_block("post_ret_unreachable");
     return context.get_void_val();
 }
 

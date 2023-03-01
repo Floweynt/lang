@@ -196,7 +196,7 @@ auto sema_ctx::unary_operator_result(unary_op_type op_type, type_descriptor oper
     return declared_unary_operators.at({op_type, operand});
 }
 
-auto sema_ctx::make_simple_lambda_function(type_descriptor return_ty, const std::vector<type_descriptor> rhs) -> type_descriptor
+auto sema_ctx::make_simple_lambda_function(type_descriptor return_ty, const std::vector<type_descriptor>& rhs) -> type_descriptor
 {
     if (!lambda_types.contains({return_ty, rhs}))
     {
@@ -205,7 +205,7 @@ auto sema_ctx::make_simple_lambda_function(type_descriptor return_ty, const std:
         if (!rhs.empty())
         {
             name = std::accumulate(rhs.begin() + 1, rhs.end(), rhs.front()->get_name(),
-                                   [](const std::string& a, type_descriptor b) { return a + ", " + b->get_name(); });
+                                   [](const std::string& folder, type_descriptor value) { return folder + ", " + value->get_name(); });
         }
 
         lambda_types[{return_ty, rhs}] = add_type(std::make_unique<trivial_function_type>(return_ty->get_name() + "(" + name + ")", return_ty, rhs));
@@ -214,7 +214,7 @@ auto sema_ctx::make_simple_lambda_function(type_descriptor return_ty, const std:
     return lambda_types.at({return_ty, rhs});
 }
 
-auto sema_ctx::exists_conversion(type_descriptor from, type_descriptor to) -> bool { return conversions.contains({from, to}); }
+auto sema_ctx::exists_conversion(type_descriptor from, type_descriptor to) -> bool { return from == to || conversions.contains({from, to}); }
 
 void sema_ctx::add_conversion(type_descriptor from, type_descriptor to) { conversions.insert({from, to}); }
 

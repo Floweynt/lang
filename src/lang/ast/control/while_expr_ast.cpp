@@ -11,8 +11,9 @@ auto while_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
     bool works = true;
 
     type_descriptor return_type = nullptr;
+    auto [cond_type, condition_works, _0] = condition->semantic_analysis(context);
 
-    auto [_0, body_works, _1] = body->semantic_analysis(context);
+    auto [_1, body_works, _2] = body->semantic_analysis(context);
     works = works && body_works;
 
     if (dynamic_cast<block_expr*>(body.get()) != nullptr)
@@ -53,7 +54,31 @@ void while_expr::visit_children(const std::function<void(const base_ast&)>& cons
     }
 }
 
-auto while_expr::do_codegen(codegen_ctx& context) const -> codegen_value { throw std::runtime_error("todo: implement while codegen"); }
+auto while_expr::do_codegen(codegen_ctx& context) const -> codegen_value
+{
+    auto* while_entry = context.make_new_block("while_entry");
+    auto* while_body = context.make_new_block("while_body");
+    auto* while_exit = context.make_new_block("while_exit");
+
+    if (context.get_insert_block()->getTerminator() == nullptr)
+    {
+        context.builder().CreateBr(while_entry);
+    }
+
+    context.set_insert_block(while_entry);
+    auto predicate = condition->codegen(context);
+    context.builder().CreateCondBr(predicate.get_value(context), while_body, while_exit);
+
+    context.set_insert_block(while_body);
+    body->codegen(context);
+    if (context.get_insert_block()->getTerminator() == nullptr)
+    {
+        context.builder().CreateBr(while_entry);
+    }
+
+    context.set_insert_block(while_exit);
+    return context.get_void_val();
+}
 
 auto while_expr::serialize() const -> std::string
 {

@@ -2,7 +2,9 @@
 
 #include "lang/ast/base_ast.h"
 #include "lang/ast/block_expr_ast.h"
+#include "lang/ast/control/return_expr_ast.h"
 #include "lang/sema/sema_ctx.h"
+#include "lang/sema/types.h"
 
 inline auto do_sema_func(sema_ctx& context, const std::vector<ast_ref>& args, const ast_ref& body, const ast_ref& return_type,
                          const std::string& name) -> semantic_analysis_result
@@ -45,15 +47,48 @@ inline auto do_sema_func(sema_ctx& context, const std::vector<ast_ref>& args, co
             return {context.make_simple_lambda_function(context.langtype(primitive_type::ERROR), arg_types), false};
         }
 
-        if(!can_consteval)
+        if (!can_consteval)
         {
             throw std::runtime_error("internal error: meta type must be consteval");
         }
 
-        // TODO: evaluate
-        // also, we must verify that the return type from block is converible to the specified return type
-        
         return_ty = return_type->compiler_eval(context).get_value<type_descriptor>();
+
+        struct visitor
+        {
+            sema_ctx& context;
+            type_descriptor return_ty;
+            bool valid;
+
+            void operator()(const base_ast& ast)
+            {
+                if (ast.get_ast_kind() == RETURN_EXPR)
+                {
+                    const auto* returned_ty = dynamic_cast<const return_expr&>(ast).get_value()->get_sema_result().ty;
+                    if (!context.exists_conversion(returned_ty, return_ty))
+                    {
+                        valid = false;
+                        context.get_compiler_ctx().report_error({
+                            ast.range(),
+                            "type returned '" + returned_ty->get_name() + "' cannot be converted to specified return type of '" +
+                                return_ty->get_name() + "'",
+                        });
+                    }
+                }
+                else
+                {
+                    ast.visit_children(*this);
+                }
+            }
+        };
+
+        visitor my_visitor{context, return_ty, true};
+        my_visitor(*body);
+
+        if (!my_visitor.valid)
+        {
+            body_valid = false;
+        }
     }
     else
     {

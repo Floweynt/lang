@@ -3,6 +3,7 @@
 #include "lang/codegen/codegen_value.h"
 #include "lang/sema/types.h"
 #include <fmt/ranges.h>
+#include <optional>
 #include <ranges>
 #include <stdexcept>
 #include <utility>
@@ -10,6 +11,7 @@
 auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
     type_descriptor type = nullptr;
+    bool is_convert_valid = true;
 
     if (!ty || ty->get_ast_kind() == AUTO_KW)
     {
@@ -50,6 +52,17 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
 
         auto value = ty->compiler_eval(context);
         type = value.get_value<type_descriptor>();
+
+        if (initializer)
+        {
+            const auto* init_ty = initializer->semantic_analysis(context).ty;
+            if (!context.exists_conversion(type, init_ty))
+            {
+                context.get_compiler_ctx().report_error({initializer->range(), "unable to convert initializer of type '" + init_ty->get_name() +
+                                                                                   "' to variable of type '" + type->get_name() + "'"});
+                is_convert_valid = false;
+            }
+        }
     }
 
     if (!context.add_variable(name, type))
@@ -61,7 +74,7 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
         return {type, false};
     }
 
-    return {type, initializer ? initializer->semantic_analysis(context).is_valid : true};
+    return {type, (initializer ? initializer->semantic_analysis(context).is_valid : true) && is_convert_valid};
 }
 
 variable_decl_expr::variable_decl_expr(code_location start, code_location end, std::string name, std::vector<ast_ref> modifiers, ast_ref ty,
@@ -89,8 +102,18 @@ void variable_decl_expr::visit_children(const std::function<void(const base_ast&
 
 auto variable_decl_expr::do_codegen(codegen_ctx& context) const -> codegen_value
 {
-    auto var = codegen_value::make_local(context, get_sema_result().ty, initializer ? initializer->codegen(context) : std::optional<codegen_value>(),
-                                         "local_" + name);
+    codegen_value var{};
+    const auto* var_type = get_sema_result().ty;
+
+    if (initializer)
+    {
+        var = codegen_value::make_local(context, var_type, context.convert_to(var_type, initializer->codegen(context)), "local_" + name);
+    }
+    else
+    {
+        var = codegen_value::make_local(context, var_type, std::nullopt, "local_" + name);
+    }
+
     context.add_variable(name, var);
     return var;
 }

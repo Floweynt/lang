@@ -11,13 +11,16 @@
 inline auto do_codegen_func(codegen_ctx& context, llvm::GlobalValue::LinkageTypes linkage, const std::string& name, type_descriptor this_ty,
                             const std::vector<ast_ref>& args, const ast_ref& body, bool is_lambda) -> codegen_value
 {
-    auto* parent = context.builder().GetInsertBlock();
+    auto* parent = context.get_insert_block();
     context.push_local_stack();
+    const auto* parent_ret_ty = context.get_func_return_ty();
+
+    context.set_func_return_ty(dynamic_cast<const trivial_function_type*>(this_ty)->get_return_ty());
 
     llvm::Function* fn = llvm::Function::Create((llvm::FunctionType*)(this_ty->get_llvm_type(context)), linkage, name, context.module());
 
-    llvm::BasicBlock* block = llvm::BasicBlock::Create(context.llvm_ctx(), "", fn);
-    context.builder().SetInsertPoint(block);
+    llvm::BasicBlock* block = llvm::BasicBlock::Create(context.llvm_ctx(), "func_entry", fn);
+    context.set_insert_block(block);
 
     // we need to initialize the arg variables
     for (auto& value : fn->args())
@@ -32,7 +35,7 @@ inline auto do_codegen_func(codegen_ctx& context, llvm::GlobalValue::LinkageType
     // we do not care about the body's value
     (void)body->codegen(context);
 
-    if(context.builder().GetInsertBlock()->getTerminator() == nullptr) 
+    if (context.get_insert_block()->getTerminator() == nullptr)
     {
         if (dynamic_cast<const trivial_function_type*>(this_ty)->get_return_ty() == context.get_sema_ctx().langtype(primitive_type::UNIT))
         {
@@ -44,12 +47,13 @@ inline auto do_codegen_func(codegen_ctx& context, llvm::GlobalValue::LinkageType
         }
     }
 
+    context.set_func_return_ty(parent_ret_ty);
     context.pop_local_stack();
-    context.builder().SetInsertPoint(parent);
+    context.set_insert_block(parent);
 
     if (llvm::verifyFunction(*fn, &llvm::errs()))
     {
-        // throw std::runtime_error("internal error: codegen failed, function is invalid");
+        // TODO: handle codegen failrues safely
     }
 
     if (!is_lambda)

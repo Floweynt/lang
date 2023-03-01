@@ -104,6 +104,7 @@ auto function_decl_stmt::do_semantic_analysis(sema_ctx& context) const -> semant
 auto function_decl_stmt::do_codegen(codegen_ctx& context) const -> codegen_value
 {
     const auto* this_ty = get_sema_result().ty;
+
     if (!body)
     {
         llvm::Function* proto =
@@ -117,6 +118,7 @@ auto function_decl_stmt::do_codegen(codegen_ctx& context) const -> codegen_value
         context.add_variable(name, codegen_value::make_constant(this_ty, proto));
         return codegen_value::make_null();
     }
+
     return do_codegen_func(context, llvm::GlobalValue::ExternalLinkage, name, this_ty, args, body, false);
 }
 /* (code_location start, code_location end, std::vector<ast_ref> args, ast_ref return_type, ast_ref body,

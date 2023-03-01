@@ -15,7 +15,8 @@ protected:
     auto do_codegen(codegen_ctx& context) const -> codegen_value override;
 
 public:
-    function_decl_stmt(code_location start, code_location end, std::vector<ast_ref> args, ast_ref return_type, ast_ref body, std::string name, ast_ref attributes);
+    function_decl_stmt(code_location start, code_location end, std::vector<ast_ref> args, ast_ref return_type, ast_ref body, std::string name,
+                       ast_ref attributes);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
     auto serialize() const -> std::string override;
 

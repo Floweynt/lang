@@ -71,8 +71,6 @@ auto function_call_expr::do_semantic_analysis(sema_ctx& context) const -> semant
 
 auto function_call_expr::do_codegen(codegen_ctx& context) const -> codegen_value
 {
-    // we must generate the invoke operator for the type
-    // TODO: implement
     std::vector<codegen_value> values(args.size());
     std::transform(args.begin(), args.end(), values.begin(), [&context](const ast_ref& ast) { return ast->codegen(context); });
     return callee->get_sema_result().ty->invoke_codegen(context, callee->codegen(context), values);

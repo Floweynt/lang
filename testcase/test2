@@ -1,6 +1,7 @@
 using int = @lang::types::integral::signed::b32;
 
 fn put_int(var value: int) -> int;
+fn put_newline() -> int;
 
 fn func(var p1: int, var p2: int)
 {
@@ -18,5 +19,28 @@ fn main()
     var c: int = func(i, 2);
     var d: int = (\(var p1: int, var p2: int) { return(p1 + p2); })(c, i);
 
-    put_int(d);
+    if(d == 32)
+    {
+        put_int(69420);
+    }
+    else 
+    {
+        put_int(d);
+    }
+
+    put_newline();
+
+    var j = 0;
+
+    while(j != 10)
+    {
+        var k = 0;
+        while(k != j + 1)
+        {
+            put_int(k);
+            k = k + 1;
+        }
+        put_newline();
+        j = j + 1;
+    }
 }

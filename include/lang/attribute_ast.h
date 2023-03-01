@@ -15,7 +15,7 @@ public:
     attribute_entry_stmt(code_location start, code_location end, std::string name, std::vector<ast_ref> args);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
     auto serialize() const -> std::string override;
-    
+
     constexpr auto get_name() const -> const auto& { return name; }
     constexpr auto get_args() const -> const auto& { return args; }
 };

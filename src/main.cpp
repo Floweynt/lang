@@ -72,7 +72,9 @@ overload(Ts...) -> overload<Ts...>;
 
 auto main(int argc, char** argv) -> int
 {
-    auto* prog_name = argv[0];
+    auto args = std::span(argv, size_t(argc));
+
+    auto* prog_name = args[0];
     argparse::ArgumentParser program(prog_name);
 
     program.add_argument("--emit-tokens").append().help("emit tokens to file").metavar("token-out");
@@ -217,6 +219,7 @@ auto main(int argc, char** argv) -> int
 
     // -- optimization
     auto optimizer = std::make_unique<llvm::legacy::FunctionPassManager>(&codegen.module());
+    optimizer->add(llvm::createDeadCodeEliminationPass());
     optimizer->add(llvm::createPromoteMemoryToRegisterPass());
     optimizer->add(llvm::createInstructionCombiningPass());
     optimizer->add(llvm::createReassociatePass());

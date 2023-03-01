@@ -92,8 +92,8 @@ class sema_ctx
     std::deque<std::pair<std::unordered_map<std::string, std::variant<type_descriptor, ct_value>>, bool>> scoped_vars;
 
 public:
-    sema_ctx(compiler_context& ctx);
     bool is_function;
+    sema_ctx(compiler_context& ctx);
 
     auto add_type(std::unique_ptr<type> ty) -> type_descriptor;
 
@@ -106,7 +106,7 @@ public:
     auto unary_operator_result(unary_op_type op_type, type_descriptor operand) -> type_descriptor;
 
     // type builders
-    auto make_simple_lambda_function(type_descriptor return_ty, std::vector<type_descriptor> rhs) -> type_descriptor;
+    auto make_simple_lambda_function(type_descriptor return_ty, const std::vector<type_descriptor>& rhs) -> type_descriptor;
 
     // @lang-id handling
     auto query_lang_id_type(const std::string& str) -> type_descriptor;

@@ -2,12 +2,11 @@
 #include "lang/ast/base_ast.h"
 #include "lang/ast/block_expr_ast.h"
 #include "lang/ast/variable_decl_expr_ast.h"
-#include "lang/codegen/codegen.h"
 #include "lang/codegen/codegen_ctx.h"
 #include "lang/codegen/codegen_value.h"
 #include "lang/raii_guard.h"
-#include "lang/sema/sema.h"
 #include "lang/sema/types.h"
+#include "lang/utils/function_like_utils.h"
 #include <fmt/ranges.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/raw_ostream.h>
@@ -121,8 +120,7 @@ auto function_decl_stmt::do_codegen(codegen_ctx& context) const -> codegen_value
 
     return do_codegen_func(context, llvm::GlobalValue::ExternalLinkage, name, this_ty, args, body, false);
 }
-/* (code_location start, code_location end, std::vector<ast_ref> args, ast_ref return_type, ast_ref body,
-                                       std::string name, ast_ref attributes)*/
+
 auto function_decl_stmt::serialize() const -> std::string
 {
     return fmt::format("(function_decleration_statement \"{}\" {} ({}) {} {})", name, attributes ? attributes->serialize() : "null",

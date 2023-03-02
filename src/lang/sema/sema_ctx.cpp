@@ -56,6 +56,7 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
         +[](llvm::LLVMContext& context) { return (llvm::Type*)llvm::StructType::get(context); }));
     add_type(std::make_unique<primitive_type>("builtin::bool", type::IS_INSTANTIABLE_TYPE | type::IS_BOOL_TYPE, llvm_integral<1>));
     add_type(std::make_unique<primitive_type>("<error-type>", type::IS_ERROR_TYPE, nullptr));
+    add_type(std::make_unique<primitive_type>("<undeduced-type>", 0, nullptr));
 
     const auto* signed_integrals = add_type(std::make_unique<simple_namespace>(
         "signed", std::unordered_map<std::string, type_descriptor>{{"b8", langtype(primitive_type::INTEGRAL_SIGNED_B8)},
@@ -110,47 +111,47 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
         langtype(primitive_type::INTEGRAL_UNSIGNED_B8),
     };
 
-    for (auto op : {OP_ADD, OP_SUB, OP_MUL, OP_DIV})
+    for (auto oper : {OP_ADD, OP_SUB, OP_MUL, OP_DIV})
     {
         for (const auto* rhs : integral_list)
         {
             for (const auto* lhs : integral_list)
             {
-                add_binary_operator(op, rhs, lhs, first_match(rhs, lhs, integral_list));
+                add_binary_operator(oper, lhs, rhs, first_match(rhs, lhs, integral_list));
             }
         }
         for (const auto* rhs : unsigned_list)
         {
             for (const auto* lhs : unsigned_list)
             {
-                add_binary_operator(op, rhs, lhs, first_match(rhs, lhs, unsigned_list));
+                add_binary_operator(oper, lhs, rhs, first_match(rhs, lhs, unsigned_list));
             }
         }
     }
 
-    for (auto op : {OP_EQ, OP_NEQ})
+    for (auto oper : {OP_EQ, OP_NEQ})
     {
         for (const auto* rhs : numeric_list)
         {
             for (const auto* lhs : numeric_list)
             {
-                add_binary_operator(op, lhs, rhs, langtype(primitive_type::BOOL));
+                add_binary_operator(oper, lhs, rhs, langtype(primitive_type::BOOL));
             }
         }
     }
 
-    for (const auto* ty : numeric_list)
+    for (const auto* type : numeric_list)
     {
-        add_binary_operator(OP_ASSIGN, ty, ty, ty);
+        add_binary_operator(OP_ASSIGN, type, type, type);
     }
 
-    for (const auto* ty : numeric_list)
+    for (const auto* type : numeric_list)
     {
-        add_conversion(ty, langtype(primitive_type::BOOL));
+        add_conversion(type, langtype(primitive_type::BOOL));
     }
 
     lang_types["lang"] = add_type(std::make_unique<simple_namespace>("@lang", std::unordered_map<std::string, type_descriptor>{{"types", types}}));
-    scoped_vars.push_back({{}, true});
+    scoped_vars.emplace_back(true);
 }
 
 auto sema_ctx::add_type(std::unique_ptr<type> ty) -> type_descriptor
@@ -170,12 +171,14 @@ auto sema_ctx::query_lang_id_type(const std::string& str) -> type_descriptor
 
 void sema_ctx::add_binary_operator(binary_op_type op_type, type_descriptor lhs, type_descriptor rhs, type_descriptor ret)
 {
-    declared_binary_operators[{op_type, lhs, rhs}] = ret;
+    binary_operator_signature sig = {op_type, lhs, rhs};
+    declared_binary_operators[sig] = ret;
 }
 
 void sema_ctx::add_unary_operator(unary_op_type op_type, type_descriptor operand, type_descriptor ret)
 {
-    declared_unary_operators[{op_type, operand}] = ret;
+    unary_operator_signature sig = {op_type, operand};
+    declared_unary_operators[sig] = ret;
 }
 
 auto sema_ctx::binary_operator_result(binary_op_type op_type, type_descriptor lhs, type_descriptor rhs) -> type_descriptor
@@ -218,14 +221,14 @@ auto sema_ctx::exists_conversion(type_descriptor from, type_descriptor to) -> bo
 
 void sema_ctx::add_conversion(type_descriptor from, type_descriptor to) { conversions.insert({from, to}); }
 
-void sema_ctx::push_local_stack() { scoped_vars.push_back({{}, false}); }
+void sema_ctx::push_local_stack() { scoped_vars.emplace_back(false); }
 
 void sema_ctx::pop_local_stack() { scoped_vars.pop_back(); }
 
 void sema_ctx::push_namespace_stack(const std::vector<std::string>& str)
 {
     curr_namespace.insert(curr_namespace.end(), str.begin(), str.end());
-    scoped_vars.push_back({{}, true});
+    scoped_vars.emplace_back(true);
 }
 
 void sema_ctx::pop_namespace_stack(size_t n)
@@ -247,9 +250,9 @@ auto sema_ctx::get_variable(const std::string& str) -> type_descriptor
             auto operator()(const ct_value& d) -> type_descriptor { return d.get_type(); }
         };
 
-        if (scoped_var.first.contains(str))
+        if (scoped_var.get_vars().contains(str))
         {
-            return std::visit(type_getting_visitor(), scoped_var.first.at(str));
+            return std::visit(type_getting_visitor(), scoped_var.get_vars().at(str));
         }
     }
 
@@ -262,8 +265,18 @@ auto sema_ctx::add_variable(const std::string& str, type_descriptor desc) -> boo
     {
         return false;
     }
-    scoped_vars.back().first[str] = desc;
+    scoped_vars.back().get_vars()[str] = desc;
     return true;
+}
+
+void sema_ctx::set_variable(const std::string& str, type_descriptor desc)
+{
+    if (get_variable(str) == langtype(primitive_type::ERROR))
+    {
+        throw std::runtime_error("internal error: unknown var");
+    }
+
+    scoped_vars.back().get_vars()[str] = desc;
 }
 
 auto sema_ctx::add_comptime_value(const std::string& str, ct_value val) -> bool
@@ -272,7 +285,7 @@ auto sema_ctx::add_comptime_value(const std::string& str, ct_value val) -> bool
     {
         return false;
     }
-    scoped_vars.back().first[str] = val;
+    scoped_vars.back().get_vars()[str] = val;
     return true;
 }
 
@@ -282,14 +295,14 @@ auto sema_ctx::get_comptime_value(const std::string& str) -> ct_value
     {
         struct ct_value_getting_visitor
         {
-            sema_ctx& s;
-            auto operator()(type_descriptor /* desc */) const -> ct_value { return {s.langtype(primitive_type::ERROR), nullptr}; }
+            sema_ctx& sema;
+            auto operator()(type_descriptor /* desc */) const -> ct_value { return {sema.langtype(primitive_type::ERROR), nullptr}; }
             auto operator()(const ct_value& val) -> ct_value { return val; }
         };
 
-        if (scoped_var.first.contains(str))
+        if (scoped_var.get_vars().contains(str))
         {
-            return std::visit(ct_value_getting_visitor{*this}, scoped_var.first.at(str));
+            return std::visit(ct_value_getting_visitor{*this}, scoped_var.get_vars().at(str));
         }
     }
 

@@ -1,11 +1,10 @@
 #include "lang/ast/lambda_expr_ast.h"
 #include "lang/ast/block_expr_ast.h"
 #include "lang/ast/variable_decl_expr_ast.h"
-#include "lang/codegen/codegen.h"
 #include "lang/codegen/codegen_ctx.h"
 #include "lang/raii_guard.h"
-#include "lang/sema/sema.h"
 #include "lang/sema/types.h"
+#include "lang/utils/function_like_utils.h"
 #include <fmt/ranges.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>

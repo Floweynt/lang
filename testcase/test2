@@ -1,5 +1,3 @@
-using int = @lang::types::integral::signed::b32;
-
 fn put_int(var value: int) -> int;
 fn put_newline() -> int;
 
@@ -12,7 +10,7 @@ fn func(var p1: int, var p2: int)
 }
 
 fn main()
-{
+{    
     var i = 1;
     i = 12;
 

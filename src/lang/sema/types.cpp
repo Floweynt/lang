@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <llvm/IR/DerivedTypes.h>
 #include <ranges>
+#include <stdexcept>
 
 auto type::resolve_name(sema_ctx& ctx, const std::string& /*name*/) const -> type_descriptor { return ctx.langtype(primitive_type::ERROR); }
 auto type::constexpr_eval_resolve_name(sema_ctx& ctx, const std::string& /*name*/) const -> ct_value
@@ -66,3 +67,4 @@ auto trivial_function_type::get_llvm_type(codegen_ctx& context) const -> llvm::T
 
     return llvm::FunctionType::get(return_ty->get_llvm_type(context), llvm_args, false);
 }
+

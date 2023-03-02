@@ -14,17 +14,28 @@
 // this context contains some duplicate info in relation to sema_ctx
 
 class codegen_value;
+
+// this the "context" passed into all of codegen, representing the state of the code generation
 class codegen_ctx
 {
+    // standard LLVM
     llvm::LLVMContext my_llvm_ctx;
     llvm::IRBuilder<> ir_builder;
     std::unique_ptr<llvm::Module> curr_module;
+
+    // cached void type
     llvm::StructType* unit_ty;
+
+    // we need to keep some info the the semantic analysis stage
     const sema_ctx& ctx;
 
+    // current namespace, composed of `curr_namespace.size()` entries
     std::vector<std::string> curr_namespace;
+
+    // the current list of variables of some scope
     std::deque<std::pair<std::unordered_map<std::string, codegen_value>, bool>> scoped_vars;
 
+    // the return type of the first function one would encounter by going up the AST
     type_descriptor func_return_ty;
 
 public:
@@ -39,8 +50,7 @@ public:
     [[nodiscard]] constexpr auto set_func_return_ty(type_descriptor ty) { func_return_ty = ty; }
 
     inline auto get_primitive(primitive_type::kind type) { this->get_sema_ctx().langtype(type)->get_llvm_type(*this); }
-    auto get_void_val()
-        -> codegen_value; //  { return llvm::UndefValue::get(this->get_sema_ctx().langtype(primitive_type::UNIT)->get_llvm_type(*this)); }
+    auto get_void_val() -> codegen_value;
 
     void push_local_stack();
     void pop_local_stack();
@@ -65,14 +75,14 @@ public:
 
     inline auto insert_to_new_block(const std::string& name = "") -> llvm::BasicBlock*
     {
-        auto* bb = make_new_block(name);
-        set_insert_block(bb);
-        return bb;
+        auto* block = make_new_block(name);
+        set_insert_block(block);
+        return block;
     }
 
-    auto insert_to(llvm::BasicBlock* target, const std::invocable<codegen_ctx&> auto& fn)
+    inline auto insert_to(llvm::BasicBlock* target, const std::invocable<codegen_ctx&> auto& fn)
     {
-        auto prev = get_insert_block();
+        auto* prev = get_insert_block();
         set_insert_block(target);
         fn(*this);
         set_insert_block(prev);

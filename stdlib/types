@@ -27,15 +27,15 @@ using float = float32;
 using double = float64;
 
 // we use signed sizes
-using size_t = @lang::types::integral::signedmax;
+using size_t = @lang::types::integral::signed::max;
 
 // char stuff
-using char8 = @lang::types::charb8;
-using char16 = @lang::types::charb16;
-using char32 = @lang::types::charb32;
+using char8 = @lang::types::char::b8;
+using char16 = @lang::types::char::b16;
+using char32 = @lang::types::char::b32;
 
 using char = char8;
-using wchar = @lang::types::charwide;
+using wchar = @lang::types::char::wide;
 
 // bool
 using bool = @lang::types::bool;

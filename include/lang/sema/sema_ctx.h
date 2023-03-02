@@ -72,6 +72,22 @@ struct std::hash<std::pair<type_descriptor, type_descriptor>>
 
 class sema_ctx
 {
+public:
+    class scope
+    {
+        using value = std::variant<type_descriptor, ct_value>;
+        std::unordered_map<std::string, value> vars;
+        bool is_ns;
+
+    public:
+        inline scope(bool is_ns) : is_ns(is_ns) {}
+
+        [[nodiscard]] constexpr auto is_namespace() const { return is_ns; }
+        constexpr auto get_vars() const -> const auto& { return vars; }
+        constexpr auto get_vars() -> auto& { return vars; }
+    };
+
+private:
     std::vector<std::unique_ptr<type>> curr_parsed_types;
     compiler_context& compiler_ctx;
 
@@ -89,15 +105,15 @@ class sema_ctx
     simple_namespace* root_ns;
 
     // this is the list of current in-scoped variables
-    std::deque<std::pair<std::unordered_map<std::string, std::variant<type_descriptor, ct_value>>, bool>> scoped_vars;
+    std::deque<scope> scoped_vars;
 
 public:
     bool is_function;
     sema_ctx(compiler_context& ctx);
 
-    auto add_type(std::unique_ptr<type> ty) -> type_descriptor;
+    auto add_type(std::unique_ptr<type> type) -> type_descriptor;
 
-    constexpr auto langtype(primitive_type::kind ty) const -> type_descriptor { return curr_parsed_types[ty].get(); }
+    constexpr auto langtype(primitive_type::kind type) const -> type_descriptor { return curr_parsed_types[type].get(); }
 
     // overload stuff
     void add_binary_operator(binary_op_type op_type, type_descriptor lhs, type_descriptor rhs, type_descriptor ret);
@@ -120,6 +136,7 @@ public:
 
     auto get_variable(const std::string& str) -> type_descriptor;
     auto add_variable(const std::string& str, type_descriptor desc) -> bool;
+    void set_variable(const std::string& str, type_descriptor desc);
     auto add_comptime_value(const std::string& str, ct_value val) -> bool;
     auto get_comptime_value(const std::string& str) -> ct_value;
 
@@ -130,6 +147,9 @@ public:
     constexpr auto get_compiler_ctx() -> compiler_context& { return compiler_ctx; }
 
     auto resolve_attribtue(const std::string& name, const std::vector<type_descriptor>& desc) -> bool;
+
+    constexpr auto get_current_scope() -> auto& { return scoped_vars.back(); }
+    constexpr auto get_current_scope() const -> const auto& { return scoped_vars.back(); }
 };
 
 struct semantic_analysis_result

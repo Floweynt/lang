@@ -75,35 +75,6 @@ void if_expr::visit_children(const std::function<void(const base_ast&)>& consume
     }
 }
 
-/*
-void do_codegen_for_branch(codegen_ctx& context, const ast_ref& condition, const ast_ref& body, auto next)
-{
-    auto *br_inst_bb = llvm::BasicBlock::Create(context.llvm_ctx(), "", context.builder().GetInsertBlock()->getParent());
-    auto *br_then = llvm::BasicBlock::Create(context.llvm_ctx(), "", context.builder().GetInsertBlock()->getParent());
-    auto *br_else = llvm::BasicBlock::Create(context.llvm_ctx(), "", context.builder().GetInsertBlock()->getParent());
-    auto *exit_point = llvm::BasicBlock::Create(context.llvm_ctx(), "", context.builder().GetInsertBlock()->getParent());
-
-    context.builder().SetInsertPoint(br_inst_bb);
-    context.builder().CreateCondBr(condition->codegen(context).get_value(context), br_then, br_else);
-
-    // me must emit the main branch
-    context.builder().SetInsertPoint(br_then);
-    body->codegen(context);
-
-    if(context.builder().GetInsertBlock()->getTerminator() == nullptr)
-    {
-        context.builder().CreateBr(exit_point);
-    }
-
-    context.builder().SetInsertPoint(br_else);
-
-
-
-    if(context.)
-
-    context.builder().SetInsertPoint(exit_point);
-}*/
-
 auto if_expr::do_codegen(codegen_ctx& context) const -> codegen_value
 {
     auto* if_entry = context.make_new_block("if_entry");

@@ -1,0 +1,28 @@
+fn put_int(var val: int) -> int;
+fn put_prompt() -> int;
+fn put_newline() -> int;
+
+fn read_int() -> int;
+
+fn factorial(var val: int) -> int;
+fn factorial(var val: int) -> int
+{
+    if(val == 0)
+        return(1);
+    return(factorial(val - 1) * val);
+}
+
+fn main() 
+{
+    var val: int = 0;
+    put_prompt();
+    val = read_int();
+
+    while(val != -1)
+    {
+        put_int(factorial(val));
+        put_newline();
+        put_prompt();
+        val = read_int();
+    }
+}

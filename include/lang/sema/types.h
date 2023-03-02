@@ -86,6 +86,7 @@ public:
         UNIT,
         BOOL,
         ERROR,
+        UNDEDUCED,
     };
 
     primitive_type(const std::string& name, uint64_t flags, llvm::Type* (*llvm_type_producer)(llvm::LLVMContext& ctx));

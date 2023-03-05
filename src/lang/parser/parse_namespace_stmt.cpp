@@ -1,3 +1,4 @@
+#include "lang/lexer/token.h"
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 
@@ -15,7 +16,7 @@ auto parse_namespace_stmt(lexer& lexer, compiler_context& ctx) -> ast_ref
 
         lexer.consume();
 
-        if (lexer.curr_token() != token::OP_NS)
+        if (!lexer.curr_token().is(token::TOK_DOUBLECOLON))
         {
             break;
         }

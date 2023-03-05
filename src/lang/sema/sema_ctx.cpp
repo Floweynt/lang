@@ -1,5 +1,7 @@
 #include "lang/sema/sema_ctx.h"
+#include "lang/ast/base_ast.h"
 #include "lang/ast/operator_types.h"
+#include "lang/compiler_context.h"
 #include "lang/sema/simple_namespace.h"
 #include "lang/sema/types.h"
 #include <algorithm>
@@ -26,6 +28,39 @@ auto llvm_integral(llvm::LLVMContext& context) -> llvm::Type*
 {
     return llvm::IntegerType::get(context, N);
 }
+
+class comptime_builtin : public type
+{
+public:
+    comptime_builtin(const std::string& name) : type(name, IS_BUILTIN_FUNC_TYPE | IS_COMPTIME_ONLY_BUILTIN_FUNC_TYPE) {}
+
+    auto get_llvm_type(codegen_ctx& context) const -> llvm::Type* override { return context.get_unit_ty(); }
+};
+
+class type_dump_builtin : public comptime_builtin
+{
+public:
+    type_dump_builtin() : comptime_builtin("<internal-type-dump>") {}
+
+    auto invoke_result(sema_ctx& ctx, const std::vector<type_descriptor>& desc) const -> type_descriptor override
+    {
+        auto name_list = desc | std::views::transform([](type_descriptor desc) {
+                             return diagnostic::diagnostic_entry{std::monostate{}, "type is: " + desc->get_name()};
+                         });
+
+        ctx.get_compiler_ctx().report_diagnostic({{ctx.get_ast_stack().top()->range(), "dumping types"},
+                                                  std::nullopt,
+                                                  std::vector<diagnostic::diagnostic_entry>(name_list.begin(), name_list.end()),
+                                                  diagnostic::info});
+
+        return ctx.langtype(primitive_type::UNIT);
+    }
+
+    auto invoke_codegen(codegen_ctx& ctx, const codegen_value& /*callee*/, const std::vector<codegen_value>& /*desc*/) const -> codegen_value override
+    {
+        return ctx.get_void_val();
+    }
+};
 
 sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
 {
@@ -58,39 +93,45 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
     add_type(std::make_unique<primitive_type>("<error-type>", type::IS_ERROR_TYPE, nullptr));
     add_type(std::make_unique<primitive_type>("<undeduced-type>", 0, nullptr));
 
-    const auto* signed_integrals = add_type(std::make_unique<simple_namespace>(
-        "signed", std::unordered_map<std::string, type_descriptor>{{"b8", langtype(primitive_type::INTEGRAL_SIGNED_B8)},
-                                                                   {"b16", langtype(primitive_type::INTEGRAL_SIGNED_B16)},
-                                                                   {"b32", langtype(primitive_type::INTEGRAL_SIGNED_B32)},
-                                                                   {"b64", langtype(primitive_type::INTEGRAL_SIGNED_B64)},
-                                                                   {"max", langtype(primitive_type::INTEGRAL_MAX)}}));
+    const auto* signed_integrals = add_type(simple_namespace_builder(*this)
+                                                .add_type("b8", langtype(primitive_type::INTEGRAL_SIGNED_B8))
+                                                .add_type("b16", langtype(primitive_type::INTEGRAL_SIGNED_B16))
+                                                .add_type("b32", langtype(primitive_type::INTEGRAL_SIGNED_B32))
+                                                .add_type("b64", langtype(primitive_type::INTEGRAL_SIGNED_B64))
+                                                .add_type("max", langtype(primitive_type::INTEGRAL_MAX))
+                                                .build("signed"));
 
-    const auto* unsigned_integrals = add_type(std::make_unique<simple_namespace>(
-        "unsigned", std::unordered_map<std::string, type_descriptor>{{"b8", langtype(primitive_type::INTEGRAL_UNSIGNED_B8)},
-                                                                     {"b16", langtype(primitive_type::INTEGRAL_UNSIGNED_B8)},
-                                                                     {"b32", langtype(primitive_type::INTEGRAL_UNSIGNED_B8)},
-                                                                     {"b64", langtype(primitive_type::INTEGRAL_UNSIGNED_B8)}}));
+    const auto* unsigned_integrals = add_type(simple_namespace_builder(*this)
+                                                  .add_type("b8", langtype(primitive_type::INTEGRAL_UNSIGNED_B8))
+                                                  .add_type("b16", langtype(primitive_type::INTEGRAL_UNSIGNED_B16))
+                                                  .add_type("b32", langtype(primitive_type::INTEGRAL_UNSIGNED_B32))
+                                                  .add_type("b64", langtype(primitive_type::INTEGRAL_UNSIGNED_B64))
+                                                  .build("unsigned"));
 
-    const auto* integrals = add_type(std::make_unique<simple_namespace>(
-        "integral", std::unordered_map<std::string, type_descriptor>{{"signed", signed_integrals}, {"unsigned", unsigned_integrals}}));
+    const auto* integrals =
+        add_type(simple_namespace_builder(*this).add_type("signed", signed_integrals).add_type("unsigned", unsigned_integrals).build("integral"));
 
-    const auto* floating = add_type(std::make_unique<simple_namespace>(
-        "floating", std::unordered_map<std::string, type_descriptor>{{"b32", langtype(primitive_type::FLOATING_B32)},
-                                                                     {"b64", langtype(primitive_type::FLOATING_B64)}}));
+    const auto* floating = add_type(simple_namespace_builder(*this)
+                                        .add_type("b32", langtype(primitive_type::FLOATING_B32))
+                                        .add_type("b64", langtype(primitive_type::FLOATING_B64))
+                                        .build("floating"));
 
-    const auto* chars = add_type(
-        std::make_unique<simple_namespace>("char", std::unordered_map<std::string, type_descriptor>{{"b8", langtype(primitive_type::CHAR_B8)},
-                                                                                                    {"b16", langtype(primitive_type::CHAR_B16)},
-                                                                                                    {"b32", langtype(primitive_type::CHAR_B32)},
-                                                                                                    {"wide", langtype(primitive_type::CHAR_WIDE)}}));
+    const auto* chars = add_type(simple_namespace_builder(*this)
+                                     .add_type("b8", langtype(primitive_type::CHAR_B8))
+                                     .add_type("b16", langtype(primitive_type::CHAR_B16))
+                                     .add_type("b32", langtype(primitive_type::CHAR_B32))
+                                     .add_type("wide", langtype(primitive_type::CHAR_WIDE))
+                                     .build("char"));
 
-    const auto* types = add_type(
-        std::make_unique<simple_namespace>("types", std::unordered_map<std::string, type_descriptor>{{"integral", integrals},
-                                                                                                     {"floating", floating},
-                                                                                                     {"char", chars},
-                                                                                                     {"meta", langtype(primitive_type::META)},
-                                                                                                     {"unit", langtype(primitive_type::UNIT)},
-                                                                                                     {"bool", langtype(primitive_type::BOOL)}}));
+    const auto* types = add_type(simple_namespace_builder(*this)
+                                     .add_type("integral", integrals)
+                                     .add_type("floating", floating)
+                                     .add_type("char", chars)
+                                     .add_type("meta", langtype(primitive_type::META))
+                                     .add_type("unit", langtype(primitive_type::UNIT))
+                                     .add_type("bool", langtype(primitive_type::BOOL))
+                                     .build("types"));
+
     auto integral_list = {
         langtype(primitive_type::INTEGRAL_MAX),        langtype(primitive_type::INTEGRAL_SIGNED_B64), langtype(primitive_type::INTEGRAL_SIGNED_B32),
         langtype(primitive_type::INTEGRAL_SIGNED_B16), langtype(primitive_type::INTEGRAL_SIGNED_B8),
@@ -111,7 +152,8 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
         langtype(primitive_type::INTEGRAL_UNSIGNED_B8),
     };
 
-    for (auto oper : {OP_ADD, OP_SUB, OP_MUL, OP_DIV})
+    for (auto oper :
+         {OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_EQ, OP_NEQ, OP_LESS, OP_GREATER, OP_GEQ, OP_LEQ, OP_BITWISE_AND, OP_BITWISE_OR, OP_BITWISE_XOR})
     {
         for (const auto* rhs : integral_list)
         {
@@ -129,29 +171,39 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
         }
     }
 
-    for (auto oper : {OP_EQ, OP_NEQ})
+    for(const auto *numeric : numeric_list)
     {
-        for (const auto* rhs : numeric_list)
+        for(const auto *shiftand : unsigned_list)
         {
-            for (const auto* lhs : numeric_list)
-            {
-                add_binary_operator(oper, lhs, rhs, langtype(primitive_type::BOOL));
-            }
+            add_binary_operator(OP_SHR, numeric, shiftand, numeric);
+        }
+    }
+
+    for(const auto *type : unsigned_list)
+    {
+        for(const auto *shiftand : unsigned_list)
+        {
+            add_binary_operator(OP_SHL, type, shiftand, type);
         }
     }
 
     for (const auto* type : numeric_list)
     {
         add_binary_operator(OP_ASSIGN, type, type, type);
-    }
-
-    for (const auto* type : numeric_list)
-    {
         add_conversion(type, langtype(primitive_type::BOOL));
+        add_unary_operator(OP_INC, type, type);
+        add_unary_operator(OP_DEC, type, type);
+        add_unary_operator(OP_LOGICAL_NOT, type, type);
+        add_unary_operator(OP_BITWISE_NOT, type, type);
+        add_unary_operator(OP_NEGATE, type, type);
     }
 
-    lang_types["lang"] = add_type(std::make_unique<simple_namespace>("@lang", std::unordered_map<std::string, type_descriptor>{{"types", types}}));
+    lang_types["lang"] = add_type(simple_namespace_builder(*this).add_type("types", types).build("@lang"));
+    lang_types["utils"] =
+        add_type(simple_namespace_builder(*this).add_value("dump_type", add_type(std::make_unique<type_dump_builtin>())).build("@utils"));
+
     scoped_vars.emplace_back(true);
+    ast_stack.push(nullptr);
 }
 
 auto sema_ctx::add_type(std::unique_ptr<type> ty) -> type_descriptor

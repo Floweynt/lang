@@ -13,8 +13,14 @@ auto while_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
     type_descriptor return_type = nullptr;
     auto [cond_type, condition_works, _0] = condition->semantic_analysis(context);
 
+    if (!context.exists_conversion(cond_type, context.langtype(primitive_type::BOOL)) && cond_type != context.langtype(primitive_type::ERROR))
+    {
+        works = false;
+        context.get_compiler_ctx().report_diagnostic({{condition->range(), "cannot convert type '" + cond_type->get_name() + "' to bool"}});
+    }
+
     auto [_1, body_works, _2] = body->semantic_analysis(context);
-    works = works && body_works;
+    works = works && body_works && condition_works;
 
     if (dynamic_cast<block_expr*>(body.get()) != nullptr)
     {

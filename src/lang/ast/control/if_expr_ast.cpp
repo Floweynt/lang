@@ -18,11 +18,10 @@ auto if_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis
         auto [predicate_type, is_pred_valid, _] = branch.first->semantic_analysis(context);
         if (is_pred_valid && !context.exists_conversion(predicate_type, context.langtype(primitive_type::BOOL)))
         {
-            context.get_compiler_ctx().report_error(error{
-                branch.first->range(),
-                "unable to convert predicate type to bool; either no conversion was found, or you messed up the type (type is '" +
-                    predicate_type->get_name() + "')",
-                std::nullopt,
+            context.get_compiler_ctx().report_diagnostic({
+                {branch.first->range(),
+                 "unable to convert predicate type to bool; either no conversion was found, or you messed up the type (type is '" +
+                     predicate_type->get_name() + "')"},
             });
         }
 

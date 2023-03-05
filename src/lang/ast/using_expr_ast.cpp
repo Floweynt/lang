@@ -10,9 +10,8 @@ auto using_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
     auto [ty, is_valid, is_consteval] = type->semantic_analysis(context);
     if (ty != context.langtype(primitive_type::META))
     {
-        context.get_compiler_ctx().report_error(error{
-            type->range(),
-            "type specifier must refer to a type (the expressions should have type 'metatype', but got \'" + ty->get_name() + "\')",
+        context.get_compiler_ctx().report_diagnostic({
+            {type->range(), "type specifier must refer to a type (the expressions should have type 'metatype', but got \'" + ty->get_name() + "\')"},
             std::nullopt,
         });
         return {context.langtype(primitive_type::UNIT), false};

@@ -1,5 +1,6 @@
 #include "lang/attribute_ast.h"
 #include "lang/ast/base_ast.h"
+#include "lang/compiler_context.h"
 #include "lang/lexer/code_location.h"
 #include "lang/sema/types.h"
 #include <fmt/ranges.h>
@@ -24,7 +25,7 @@ auto attribute_entry_stmt::do_semantic_analysis(sema_ctx& context) const -> sema
 
         if (!is_arg_constexpr)
         {
-            context.get_compiler_ctx().report_error({arg->range(), "attribute argument must be constexpr"});
+            context.get_compiler_ctx().report_diagnostic({{arg->range(), "attribute argument must be constexpr"}});
             is_valid = false;
         }
     }
@@ -36,7 +37,7 @@ auto attribute_entry_stmt::do_semantic_analysis(sema_ctx& context) const -> sema
 
     if (!context.resolve_attribtue(name, arg_types))
     {
-        std::vector<std::pair<code_range, std::string>> notes;
+        std::vector<diagnostic::diagnostic_entry> notes;
         size_t index = 0;
         notes.reserve(arg_types.size());
 
@@ -45,7 +46,7 @@ auto attribute_entry_stmt::do_semantic_analysis(sema_ctx& context) const -> sema
             notes.emplace_back(args[index++]->range(), "argument type " + arg_type->get_name());
         }
 
-        context.get_compiler_ctx().report_error({range(), "unable to resolve attribtue " + name, {}, notes});
+        context.get_compiler_ctx().report_diagnostic({{range(), "unable to resolve attribtue " + name}, {}, notes});
 
         return {nullptr, false, false};
     }

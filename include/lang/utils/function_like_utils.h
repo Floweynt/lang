@@ -10,4 +10,3 @@ auto do_sema_func(sema_ctx& context, const std::vector<ast_ref>& args, const ast
     -> semantic_analysis_result;
 auto do_codegen_func(codegen_ctx& context, llvm::GlobalValue::LinkageTypes linkage, const std::string& name, type_descriptor this_ty,
                      const std::vector<ast_ref>& args, const ast_ref& body, bool is_lambda) -> codegen_value;
-

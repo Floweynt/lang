@@ -39,6 +39,7 @@
 #include <llvm/Transforms/Utils.h>
 #include <ranges>
 #include <sstream>
+#include <variant>
 
 template <typename... Ts>
 struct overload : Ts...
@@ -85,29 +86,50 @@ public:
 template <typename B1, typename B2>
 cat_streambuf(B1*, B2*) -> cat_streambuf<B1, B2>;
 
-[[noreturn]] void dump_errors(compiler_context& ctx)
+constexpr auto serialize_location(const std::variant<code_range, code_location, std::monostate>& loc) -> std::string
 {
-    for (const auto& error : ctx.get_errors())
+    return std::visit(
+        overload{[](const code_location& loc) { return fmt::format("@({}:{})", loc.line, loc.col); },
+                 [](const code_range& loc) { return fmt::format("@({}:{}-{}:{})", loc.start.line, loc.start.col, loc.end.line, loc.end.col); },
+                 [](std::monostate) { return std::string("(no loc)"); }},
+        loc);
+}
+
+void dump_diagnostics(compiler_context& ctx)
+{
+    for (const auto& diagnostic : ctx.get_diagnostics())
     {
-        std::cout << "error "
-                  << std::visit(overload{[](const code_location& loc) { return fmt::format("@({}:{})", loc.line, loc.col); },
-                                         [](const code_range& loc) {
-                                             return fmt::format("@({}:{}-{}:{})", loc.start.line, loc.start.col, loc.end.line, loc.end.col);
-                                         }},
-                                error.main_error)
-                  << " " << error.message << '\n';
-        if (error.fix)
+        std::cout << fmt::format("{}: {}: {}\n", magic_enum::enum_name(diagnostic.diagnostic_level),
+                                 serialize_location(diagnostic.main_diagnostic.location), diagnostic.main_diagnostic.message);
+
+        if (diagnostic.fix)
         {
-            std::cout << "    potential fix: " << error.fix.value() << '\n';
+            std::cout << fmt::format("    potential fix: {}\n", diagnostic.fix.value());
         }
 
-        for (const auto& notes : error.related)
+        for (const auto& note : diagnostic.related)
         {
-            std::cout << fmt::format("    note @({}:{}-{}:{}): {}\n", notes.first.start.line, notes.first.start.col, notes.first.end.line,
-                                     notes.first.end.col, notes.second);
+            std::cout << fmt::format("    note: {}: {}\n", serialize_location(note.location), note.message);
         }
     }
-    exit(-1);
+
+    if (ctx.get_error_count())
+    {
+        std::cout << fmt::format("compilation failed with {} errors\n", ctx.get_error_count());
+    }
+    if (ctx.get_warning_count())
+    {
+        std::cout << fmt::format("{} warnings diagnostics reported\n", ctx.get_warning_count());
+    }
+    if (ctx.get_info_count())
+    {
+        std::cout << fmt::format("{} info diagnostics reported\n", ctx.get_info_count());
+    }
+
+    if (ctx.get_error_count())
+    {
+        exit(-1);
+    }
 }
 
 void optimize(llvm::Module& module, llvm::OptimizationLevel level)
@@ -280,10 +302,7 @@ auto main(int argc, char** argv) -> int
 
     auto ast = parse(lexer, ctx);
 
-    if (!ctx.get_errors().empty())
-    {
-        dump_errors(ctx);
-    }
+    dump_diagnostics(ctx);
 
     if (program.present("--emit-ast"))
     {
@@ -317,10 +336,7 @@ auto main(int argc, char** argv) -> int
     sema_ctx sema(ctx);
     ast->semantic_analysis(sema);
 
-    if (!ctx.get_errors().empty())
-    {
-        dump_errors(ctx);
-    }
+    dump_diagnostics(ctx);
 
     if (program.get<bool>("--syntax-only"))
     {

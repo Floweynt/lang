@@ -1,5 +1,6 @@
 #include "lang/ast/function_call_expr_ast.h"
 #include "lang/codegen/codegen_value.h"
+#include "lang/compiler_context.h"
 #include "lang/sema/types.h"
 #include <fmt/ranges.h>
 #include <optional>
@@ -50,7 +51,7 @@ auto function_call_expr::do_semantic_analysis(sema_ctx& context) const -> semant
 
     if (invoke_result == context.langtype(primitive_type::ERROR))
     {
-        std::vector<std::pair<code_range, std::string>> notes;
+        std::vector<diagnostic::diagnostic_entry> notes;
 
         notes.emplace_back(callee->range(), "invokee type is " + invokee_ty->get_name());
 
@@ -59,10 +60,10 @@ auto function_call_expr::do_semantic_analysis(sema_ctx& context) const -> semant
             notes.emplace_back(args[i]->range(), "argument " + std::to_string(i) + " has type " + types[i]->get_name());
         }
 
-        context.get_compiler_ctx().report_error(error{
-            range(),
-            "unable to invoke function with specified argument types; either the invokee cannot be called as a function, or you messed up arguments",
-            std::nullopt, notes});
+        context.get_compiler_ctx().report_diagnostic({{range(), "unable to invoke function with specified argument types; either the invokee cannot "
+                                                                "be called as a function, or you messed up arguments"},
+                                                      std::nullopt,
+                                                      notes});
         return {context.langtype(primitive_type::ERROR), false};
     }
 

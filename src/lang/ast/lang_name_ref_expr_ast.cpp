@@ -11,7 +11,7 @@ auto lang_name_ref_expr::do_semantic_analysis(sema_ctx& context) const -> semant
 
     if (type == context.langtype(primitive_type::ERROR))
     {
-        context.get_compiler_ctx().report_error(error{range(), "unable to access language feature \'" + name + "\'"});
+        context.get_compiler_ctx().report_diagnostic({{range(), "unable to access language feature \'" + name + "\'"}});
     }
 
     return {context.langtype(primitive_type::META), type != context.langtype(primitive_type::ERROR), true};

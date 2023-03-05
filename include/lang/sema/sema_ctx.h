@@ -70,6 +70,8 @@ struct std::hash<std::pair<type_descriptor, type_descriptor>>
     }
 };
 
+class base_ast;
+
 class sema_ctx
 {
 public:
@@ -106,9 +108,10 @@ private:
 
     // this is the list of current in-scoped variables
     std::deque<scope> scoped_vars;
+    std::stack<const base_ast*> ast_stack;
+    bool is_func;
 
 public:
-    bool is_function;
     sema_ctx(compiler_context& ctx);
 
     auto add_type(std::unique_ptr<type> type) -> type_descriptor;
@@ -150,6 +153,13 @@ public:
 
     constexpr auto get_current_scope() -> auto& { return scoped_vars.back(); }
     constexpr auto get_current_scope() const -> const auto& { return scoped_vars.back(); }
+
+    constexpr auto is_function() const { return is_func; }
+    constexpr void set_function(bool is_fn = true) { is_func = is_fn; }
+
+    [[nodiscard]] constexpr auto get_ast_stack() const -> const auto& { return ast_stack; }
+    constexpr void push_ast(const base_ast* ast) { ast_stack.push(ast); }
+    constexpr void pop_ast() { ast_stack.pop(); }
 };
 
 struct semantic_analysis_result

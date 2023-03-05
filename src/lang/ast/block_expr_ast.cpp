@@ -27,10 +27,10 @@ auto block_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
     context.push_local_stack();
     raii_guard guard([&context]() { context.pop_local_stack(); });
 
-    bool is_fn = context.is_function;
+    bool is_fn = context.is_function();
 
     // we are no longer in the top-level block of a function, so clear this flag
-    context.is_function = false;
+    context.set_function(false);
 
     bool sema_success = true;
     type_descriptor type = context.langtype(primitive_type::UNIT);
@@ -45,8 +45,9 @@ auto block_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
         {
             if (is_fn)
             {
-                context.get_compiler_ctx().report_error(error{
-                    stmt->range(), "yield expressions are not allowed within the top-level blocks; use 'return' if you want to return a value", {}});
+                context.get_compiler_ctx().report_diagnostic(
+                    {{stmt->range(), "yield expressions are not allowed within the top-level blocks; use 'return' if you want to return a value"},
+                     {}});
             }
 
             if (type == context.langtype(primitive_type::UNIT))
@@ -55,15 +56,15 @@ auto block_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
             }
             else
             {
-                context.get_compiler_ctx().report_error(
-                    error{stmt->range(), "only one yield expression permitted within the statements of a block (yields in nested blocks are ok)"});
+                context.get_compiler_ctx().report_diagnostic(
+                    {{stmt->range(), "only one yield expression permitted within the statements of a block (yields in nested blocks are ok)"}});
                 sema_success = false;
             }
         }
     }
 
     // reset the value supplied
-    context.is_function = is_fn;
+    context.set_function(is_fn);
 
     return {type, sema_success};
 }
@@ -109,8 +110,8 @@ auto block_expr::deduce_return_type(sema_ctx& context) -> type_descriptor
 
     if (!flag)
     {
-        context.get_compiler_ctx().report_error(
-            {range(), "failed to deduce return type; return type deduction requires that all return statements return a value of identical types"});
+        context.get_compiler_ctx().report_diagnostic(
+            {{range(), "failed to deduce return type; return type deduction requires that all return statements return a value of identical types"}});
         return context.langtype(primitive_type::ERROR);
     }
 

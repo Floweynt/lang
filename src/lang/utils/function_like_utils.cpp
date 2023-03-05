@@ -44,10 +44,9 @@ auto do_sema_func(sema_ctx& context, const std::vector<ast_ref>& args, const ast
 
         if (return_type_specifier_ty != context.langtype(primitive_type::META))
         {
-            context.get_compiler_ctx().report_error(error{
-                return_type->range(),
-                "type specifier must refer to a type (the expressions should have type 'metatype', but got \'" +
-                    return_type_specifier_ty->get_name() + "\')",
+            context.get_compiler_ctx().report_diagnostic({
+                {return_type->range(), "type specifier must refer to a type (the expressions should have type 'metatype', but got \'" +
+                                           return_type_specifier_ty->get_name() + "\')"},
                 std::nullopt,
             });
 
@@ -83,10 +82,9 @@ auto do_sema_func(sema_ctx& context, const std::vector<ast_ref>& args, const ast
                     if (!context.exists_conversion(returned_ty, return_ty))
                     {
                         valid = false;
-                        context.get_compiler_ctx().report_error({
-                            ast.range(),
-                            "type returned '" + returned_ty->get_name() + "' cannot be converted to specified return type of '" +
-                                return_ty->get_name() + "'",
+                        context.get_compiler_ctx().report_diagnostic({
+                            {ast.range(), "type returned '" + returned_ty->get_name() + "' cannot be converted to specified return type of '" +
+                                              return_ty->get_name() + "'"},
                         });
                     }
                 }

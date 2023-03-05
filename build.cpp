@@ -10,71 +10,54 @@
 
 using namespace metabuild;
 
-auto do_build()
+auto do_build(const std::string& postfix, metabuild::build_type type, bool sanitizer = false)
 {
-    std::vector<std::filesystem::path> p;
-    auto e = executable("compiler", metabuild::compiler_flags::C11, metabuild::compiler_flags::CXX20,
-                        {.cxx = compiler_flags().add_flags("-DFMT_HEADER_ONLY")
-
-                        })
-                 .library("m")
-                 .library("LLVM-16")
-                 .include_dir(source_root() / "include/")
-                 .include_dir(source_root() / "deps/stacktrace/include")
-                 .include_dir(source_root() / "deps/magic_enum/include/")
-                 .include_dir(source_root() / "deps/stacktrace/build")
-                 .include_dir(source_root() / "deps/argparse/include/")
-                 .set_build_type(metabuild::DEBUG)
-                 .parallelize()
-                 .libstdcxx();
-
-    for (const auto& i : std::filesystem::recursive_directory_iterator(source_root() / "src"))
+    compiler_flags flags;
+    flags.add_flags("-DFMT_HEADER_ONLY");
+    if (sanitizer)
     {
-        if (i.path().extension() != ".cpp")
-            continue;
-        e.add_src(i.path());
+        flags.add_flags("-fsanitize=address,undefined");
     }
 
-    return e.build();
-}
+    auto exec = executable("compiler-" + postfix, metabuild::compiler_flags::C11, metabuild::compiler_flags::CXX20, {.cxx = flags})
+                    .library("m")
+                    .library("LLVM-16")
+                    .include_dir(source_root() / "include/")
+                    .include_dir(source_root() / "deps/stacktrace/include")
+                    .include_dir(source_root() / "deps/magic_enum/include/")
+                    .include_dir(source_root() / "deps/stacktrace/build")
+                    .include_dir(source_root() / "deps/argparse/include/")
+                    .set_build_type(type)
+                    .parallelize()
+                    .libstdcxx();
 
-auto do_build_san()
-{
-    std::vector<std::filesystem::path> p;
-    auto e = executable("compiler-san", metabuild::compiler_flags::C11, metabuild::compiler_flags::CXX20,
-                        {.cxx = compiler_flags().add_flags("-DFMT_HEADER_ONLY").add_flags("-fsanitize=address,undefined")})
-                 .library("m")
-                 .library("LLVM-16")
-                 .include_dir(source_root() / "include/")
-                 .include_dir(source_root() / "deps/stacktrace/include")
-                 .include_dir(source_root() / "deps/magic_enum/include/")
-                 .include_dir(source_root() / "deps/stacktrace/build")
-                 .library("asan")
-                 .library("ubsan")
-
-                 .set_build_type(metabuild::DEBUG)
-                 .parallelize()
-                 .libstdcxx();
-
-    for (const auto& i : std::filesystem::recursive_directory_iterator(source_root() / "src"))
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(source_root() / "src"))
     {
-        if (i.path().extension() != ".cpp")
+        if (entry.path().extension() != ".cpp")
+        {
             continue;
-        e.add_src(i.path());
+        }
+
+        exec.add_src(entry.path());
     }
 
-    return e.build();
+    return exec.build();
 }
 
 METABUILD_ENTRY void metabuild_register(build_registration& reg)
 {
-    reg.add("build", [](auto fn) -> int {
-        auto o = do_build();
+    reg.add("build", [](auto ) -> int {
+        (void)do_build("debug", DEBUG, false);
         return 0;
     });
 
-    reg.add("build-san", [](auto fn) -> int {
-        auto o = do_build_san();
+    reg.add("build-san", [](auto ) -> int {
+        (void)do_build("san", DEBUG, true);
+        return 0;
+    });
+
+    reg.add("build-release", [](auto ) -> int {
+        (void)do_build("release", RELEASE, false);
         return 0;
     });
 }

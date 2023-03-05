@@ -43,7 +43,8 @@ enum ast_type
     EMPTY_STMT,
     ATTRIBUTE_ENTRY_AST,
     ATTRIBUTE_AST,
-    WHILE_EXPR
+    WHILE_EXPR,
+    NAMESPACED_NAME_AST,
 };
 
 inline static constexpr const char* AST_KIND_NAME[] = {"string_literal",
@@ -76,7 +77,8 @@ inline static constexpr const char* AST_KIND_NAME[] = {"string_literal",
                                                        "empty_statement",
                                                        "attribute_entry",
                                                        "attribute",
-                                                       "while_expression"};
+                                                       "while_expression",
+                                                       "namespaced_name_expression"};
 
 class base_ast
 {
@@ -117,14 +119,7 @@ public:
     virtual void visit_children(const std::function<void(const base_ast&)>& consumer) const = 0;
     virtual auto serialize() const -> std::string = 0;
 
-    inline auto semantic_analysis(sema_ctx& context) const -> const auto&
-    {
-        if (!sema_result)
-        {
-            sema_result = do_semantic_analysis(context);
-        }
-        return *sema_result;
-    }
+    auto semantic_analysis(sema_ctx& context) const -> const semantic_analysis_result&;
 
     inline auto compiler_eval(sema_ctx& context) const -> const auto&
     {

@@ -80,11 +80,11 @@ public:
         return block;
     }
 
-    inline auto insert_to(llvm::BasicBlock* target, const std::invocable<codegen_ctx&> auto& fn)
+    inline auto insert_to(llvm::BasicBlock* target, const std::invocable<codegen_ctx&> auto& func)
     {
         auto* prev = get_insert_block();
         set_insert_block(target);
-        fn(*this);
+        func(*this);
         set_insert_block(prev);
     }
 };

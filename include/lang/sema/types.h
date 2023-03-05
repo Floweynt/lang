@@ -31,6 +31,8 @@ public:
     inline static constexpr uint64_t IS_UNIT_TYPE = 1 << 7;
     inline static constexpr uint64_t IS_BOOL_TYPE = 1 << 8;
     inline static constexpr uint64_t IS_ERROR_TYPE = 1 << 9;
+    inline static constexpr uint64_t IS_BUILTIN_FUNC_TYPE = 1 << 10;
+    inline static constexpr uint64_t IS_COMPTIME_ONLY_BUILTIN_FUNC_TYPE = 1 << 11;
 
     constexpr type(std::string str, uint64_t flags) : name(std::move(str)), flags(flags) {}
     [[nodiscard]] constexpr auto get_name() const -> const std::string& { return name; }
@@ -52,6 +54,8 @@ public:
     [[nodiscard]] constexpr auto is_unit() const -> bool { return (flags & IS_UNIT_TYPE) != 0U; }
     [[nodiscard]] constexpr auto is_bool() const -> bool { return (flags & IS_BOOL_TYPE) != 0U; }
     [[nodiscard]] constexpr auto is_error() const -> bool { return (flags & IS_ERROR_TYPE) != 0U; }
+    [[nodiscard]] constexpr auto is_builtin_function() const -> bool { return (flags & IS_BUILTIN_FUNC_TYPE) != 0U; }
+    [[nodiscard]] constexpr auto is_comptime_only_builtin_func() const -> bool { return (flags & IS_COMPTIME_ONLY_BUILTIN_FUNC_TYPE) != 0U; }
 
     virtual auto get_llvm_type(codegen_ctx& context) const -> llvm::Type* = 0;
 

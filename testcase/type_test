@@ -1,0 +1,4 @@
+fn func() 
+{
+    @utils::dump_type(1 + 1); 
+}

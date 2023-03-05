@@ -1,5 +1,7 @@
 #pragma once
 #include "code_location.h"
+#include "lang/compiler_context.h"
+#include <cctype>
 #include <string>
 #include <variant>
 
@@ -15,8 +17,7 @@ class token
 public:
     enum operators
     {
-        OP_NS = 0,      // ::
-        OP_INC,         // ++
+        OP_INC = 0,     // ++
         OP_DEC,         // --
         OP_MEMBER,      // .
         OP_PLUS,        // +
@@ -86,6 +87,7 @@ public:
         TOK_COMMA,
         TOK_BKSLASH,
         TOK_ELLIPSIS,
+        TOK_DOUBLECOLON,
 
         // keywords
         TOK_KW_AUTO,
@@ -151,3 +153,119 @@ public:
     constexpr auto operator==(operators rhs) const -> bool { return type() == TOK_OPERATOR && op() == rhs; }
     [[nodiscard]] constexpr auto is(types tok) const -> bool { return type() == tok; }
 };
+
+constexpr auto from_integer_literal(const code_location& loc, const code_location& end, const std::string& value, int base) -> token
+{
+    size_t index = 0;
+    auto lit_value = std::stoll(value, &index, base);
+    auto lit_specifier = value.substr(index);
+    return token(loc, end, token::TOK_INTEGER, literal_value<intmax_t>{lit_value, lit_specifier});
+}
+
+constexpr auto from_double_literal(const code_location& loc, const code_location& end, const std::string& value) -> token
+{
+    size_t index = 0;
+    auto lit_value = std::stold(value, &index);
+    auto lit_specifier = value.substr(index);
+    return token(loc, end, token::TOK_FLOATING, literal_value<long double>{lit_value, lit_specifier});
+}
+
+constexpr auto from_string_literal(compiler_context& ctx, const code_location& loc, const code_location& end, const std::string& value) -> token
+{
+    std::string str = value.substr(1, value.find_last_of('"') - 1);
+    std::string result;
+
+    for (int i = 0; i < str.length(); i++)
+    {
+        if (str[i] == '\\')
+        {
+            if (i + 1 >= str.length())
+            {
+                ctx.report_error(loc, end, "invalid escape sequence at end of string");
+                break; // stop processing the string
+            }
+            switch (str[i + 1])
+            {
+            case 'n':
+                result += '\n';
+                break;
+            case 't':
+                result += '\t';
+                break;
+            case 'r':
+                result += '\r';
+                break;
+            case '\'':
+                result += '\'';
+                break;
+            case '\"':
+                result += '\"';
+                break;
+            case '\\':
+                result += '\\';
+                break;
+            case 'x': {
+                if (i + 3 >= str.length())
+                {
+                    ctx.report_error(loc, end, "incomplete hexadecimal escape sequence");
+                    result += str.substr(i, 2); // append the original escape sequence
+                    break;                      // continue processing the string
+                }
+                char hex[3] = {str[i + 2], str[i + 3], '\0'};
+                int value = std::stoi(hex, nullptr, 16);
+                result += static_cast<char>(value);
+                i += 3; // skip the next 3 characters (the \x and two hex digits)
+                break;
+            }
+            case '0': {
+                bool valid = false;
+                int value = 0;
+                for (int j = i + 1; j <= i + 3 && j < str.length(); j++)
+                {
+                    if (str[j] >= '0' && str[j] <= '7')
+                    {
+                        valid = true;
+                        value = (value << 3) + (str[j] - '0');
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                if (!valid)
+                {
+                    if (i + 1 == str.length() || (i + 2 < str.length() && str[i + 2] >= '0' && str[i + 2] <= '7'))
+                    {
+                        result += '\0';
+                        i++; // skip the next character ('\0')
+                    }
+                    else
+                    {
+                        ctx.report_error(loc, end, "incomplete or invalid octal escape sequence");
+                        result += str.substr(i, 2); // append the original escape sequence
+                        break;                      // continue processing the string
+                    }
+                }
+                else
+                {
+                    result += static_cast<char>(value);
+                    i += 3; // skip the next 3 characters (the \0 and up to three octal digits)
+                }
+                break;
+            }
+            default: {
+                result += str[i + 1]; // append the character
+                break;
+            }
+            }
+            i++;
+        }
+        else
+        {
+            result += str[i];
+        }
+    }
+
+    return token(loc, end, token::TOK_STRING, literal_value<std::string>{result, value.substr(value.find_last_of('"') + 1)});
+}
+

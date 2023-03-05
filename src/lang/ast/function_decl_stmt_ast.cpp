@@ -51,7 +51,7 @@ auto function_decl_stmt::do_semantic_analysis(sema_ctx& context) const -> semant
         // prototype sema
         if (!return_type || return_type->get_ast_kind() == AUTO_KW)
         {
-            context.get_compiler_ctx().report_error({range(), "forward decleration must have return type"});
+            context.get_compiler_ctx().report_diagnostic({{range(), "forward decleration must have return type"}});
             return {context.langtype(primitive_type::ERROR), false};
         }
 
@@ -76,10 +76,9 @@ auto function_decl_stmt::do_semantic_analysis(sema_ctx& context) const -> semant
         auto [return_type_specifier_ty, return_type_valid, can_consteval] = return_type->semantic_analysis(context);
         if (return_type_specifier_ty != context.langtype(primitive_type::META))
         {
-            context.get_compiler_ctx().report_error(error{
-                return_type->range(),
-                "type specifier must refer to a type (the expressions should have type 'metatype', but got \'" +
-                    return_type_specifier_ty->get_name() + "\')",
+            context.get_compiler_ctx().report_diagnostic({
+                {return_type->range(), "type specifier must refer to a type (the expressions should have type 'metatype', but got \'" +
+                                           return_type_specifier_ty->get_name() + "\')"},
                 std::nullopt,
             });
 

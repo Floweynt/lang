@@ -5,7 +5,6 @@ enum binary_op_type
     OP_BAD_BINARY = -1,
 
     // misc
-    OP_NAMESPACED_REFERENCE,
     OP_MEMBER_ACCESS,
 
     // bitwise
@@ -49,12 +48,17 @@ enum binary_op_type
 };
 
 inline static constexpr const char* OPERATOR_SYMBOLS[] = {
-    "::", ".", "&", "^", "|", ">>", "<<", "&&", "||", "<=>", "<",   "<=",  ">",  ">=", "==", "!=",
-    "+",  "-", "*", "/", "%", "=",  "+=", "-=", "*=", "%=",  "<<=", ">>=", "&=", "^=", "|=",
+    ".", "&", "^", "|", ">>", "<<", "&&", "||", "<=>", "<",  "<=",  ">",   ">=", "==", "!=",
+    "+", "-", "*", "/", "%",  "=",  "+=", "-=", "*=",  "%=", "<<=", ">>=", "&=", "^=", "|=",
 };
 
 enum unary_op_type
 {
     OP_BAD_UNARY = -1,
-    OP_INC
+    OP_INC,
+    OP_DEC,
+    OP_LOGICAL_NOT,
+    OP_BITWISE_NOT,
+    OP_PROMOTE,
+    OP_NEGATE
 };

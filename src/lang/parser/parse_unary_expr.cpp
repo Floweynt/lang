@@ -1,10 +1,45 @@
+#include "lang/ast/operator_types.h"
 #include <lang/parser/parser.h>
 
 static auto tok_to_unary_op(token::operators op) -> unary_op_type
 {
     static constexpr int TOK_TO_BIN_OP[] = {
-        -1, OP_INC, -1, -1, -1, -1, -1, -1,        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1,     -1, -1, -1, -1, -1, OP_ASSIGN, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        -1,
+        OP_INC,
+        OP_DEC,
+        -1,
+        OP_PROMOTE,
+        OP_NEGATE,
+        OP_LOGICAL_NOT,
+        OP_BITWISE_NOT,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        OP_ASSIGN,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
     };
 
     return (unary_op_type)TOK_TO_BIN_OP[op];

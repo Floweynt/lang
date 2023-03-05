@@ -17,9 +17,8 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
     {
         if (!initializer)
         {
-            context.get_compiler_ctx().report_error(error{
-                range(),
-                "unable to use auto keyword without initializer: cannot deduce type",
+            context.get_compiler_ctx().report_diagnostic({
+                {range(), "do not use auto keyword without initializer: cannot deduce type"},
             });
             return {context.langtype(primitive_type::ERROR), false};
         }
@@ -37,9 +36,8 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
         auto [start, end, can_consteval] = ty->semantic_analysis(context);
         if (start != context.langtype(primitive_type::META))
         {
-            context.get_compiler_ctx().report_error(error{
-                ty->range(),
-                "type specifier should be of type metatype; either insert decltype(...), or fix the type signature",
+            context.get_compiler_ctx().report_diagnostic({
+                {ty->range(), "type specifier should be of type metatype; either insert decltype(...), or fix the type signature"},
             });
 
             return {context.langtype(primitive_type::ERROR), false};
@@ -58,8 +56,8 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
             const auto* init_ty = initializer->semantic_analysis(context).ty;
             if (!context.exists_conversion(type, init_ty))
             {
-                context.get_compiler_ctx().report_error({initializer->range(), "unable to convert initializer of type '" + init_ty->get_name() +
-                                                                                   "' to variable of type '" + type->get_name() + "'"});
+                context.get_compiler_ctx().report_diagnostic({{initializer->range(), "unable to convert initializer of type '" + init_ty->get_name() +
+                                                                                         "' to variable of type '" + type->get_name() + "'"}});
                 is_convert_valid = false;
             }
         }
@@ -67,9 +65,8 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
 
     if (!context.add_variable(name, type))
     {
-        context.get_compiler_ctx().report_error(error{
-            range(),
-            "duplicate variable name declared; the variable has been previously declared",
+        context.get_compiler_ctx().report_diagnostic({
+            {range(), "duplicate variable name declared; the variable has been previously declared"},
         });
         return {type, false};
     }

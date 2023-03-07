@@ -1,4 +1,5 @@
 #pragma once
+#include "lang/compiler_context.h"
 #include "lang/sema/types.h"
 #include <lang/ast/base_ast.h>
 
@@ -14,37 +15,60 @@ class literal_expr : public base_ast
 protected:
     auto do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result override
     {
-        switch (get_ast_kind())
-        {
-        case STRING_LITERAL:
-            // not implemented
-        case INT_LITERAL:
-            return {context.langtype(primitive_type::INTEGRAL_SIGNED_B32), true};
-        case FLOAT_LITERAL:
-            return {context.langtype(primitive_type::FLOATING_B32), true};
-        default:
-            __builtin_unreachable();
-        }
-
-        __builtin_unreachable();
-    }
-
-    inline auto do_codegen(codegen_ctx& context) const -> codegen_value override
-    {
         if constexpr (std::is_same_v<T, std::string>)
         {
-            __builtin_unreachable();
+            const auto* literal_type = context.resolve_literal_string(literal);
+            if (literal_type == context.langtype(primitive_type::ERROR))
+            {
+                context.get_compiler_ctx().report_diagnostic({{range(), "unknown string literal specifier '" + literal + "'"}});
+            }
+            return {literal_type, literal_type != context.langtype(primitive_type::ERROR)};
         }
+
         else if constexpr (std::is_same_v<T, intmax_t>)
         {
-            return codegen_value::make_constant(
-                get_sema_result().ty,
-                llvm::ConstantInt::get(context.get_sema_ctx().langtype(primitive_type::INTEGRAL_SIGNED_B32)->get_llvm_type(context), val));
+            const auto* literal_type = context.resolve_literal_integer(literal);
+            if (literal_type == context.langtype(primitive_type::ERROR))
+            {
+                context.get_compiler_ctx().report_diagnostic({{range(), "unknown integer literal specifier '" + literal + "'"}});
+            }
+
+            if (literal_type->is_integral())
+            {
+                if (literal_type->is_unsigned_integral() && val < 0)
+                {
+                    context.get_compiler_ctx().report_diagnostic({{range(), "integer literal specifier is unsigned; the value is not"}});
+                }
+
+                // not implement
+            }
+
+            return {literal_type, literal_type != context.langtype(primitive_type::ERROR)};
         }
         else
         {
-            __builtin_unreachable();
-            // return llvm::ConstantFl::get(context.get_sema_ctx().langtype(primitive_type::FLOATING_B64)->get_llvm_type(context), val);
+            const auto* literal_type = context.resolve_literal_floating(literal);
+            if (literal_type == context.langtype(primitive_type::ERROR))
+            {
+                context.get_compiler_ctx().report_diagnostic({{range(), "unknown floating literal specifier '" + literal + "'"}});
+            }
+            return {literal_type, literal_type != context.langtype(primitive_type::ERROR)};
+        }
+    }
+
+    auto do_codegen(codegen_ctx& context) const -> codegen_value override
+    {
+        if constexpr (std::is_same_v<T, std::string>)
+        {
+            return context.make_literal_string(literal, val);
+        }
+        else if constexpr (std::is_same_v<T, intmax_t>)
+        {
+            return context.make_literal_integer(literal, val);
+        }
+        else
+        {
+            return context.make_literal_floating(literal, val);
         }
     }
 
@@ -67,7 +91,8 @@ public:
     }
 
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override {}
-    inline auto serialize() const -> std::string override
+
+    auto serialize() const -> std::string override
     {
         if constexpr (std::is_same_v<T, std::string>)
         {

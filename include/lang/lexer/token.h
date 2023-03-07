@@ -268,4 +268,3 @@ constexpr auto from_string_literal(compiler_context& ctx, const code_location& l
 
     return token(loc, end, token::TOK_STRING, literal_value<std::string>{result, value.substr(value.find_last_of('"') + 1)});
 }
-

@@ -15,6 +15,7 @@
 #include <ranges>
 #include <stdexcept>
 #include <vector>
+#include "lang/utils/utils.h"
 
 function_decl_stmt::function_decl_stmt(code_location start, code_location end, std::vector<ast_ref> args, ast_ref return_type, ast_ref body,
                                        std::string name, ast_ref attributes)
@@ -62,7 +63,7 @@ auto function_decl_stmt::do_semantic_analysis(sema_ctx& context) const -> semant
         context.push_local_stack();
         for (const auto& arg : args)
         {
-            auto [arg_type, valid, _] = arg->semantic_analysis(context);
+            auto [arg_type, valid, _, _] = arg->semantic_analysis(context);
             arg_types.push_back(arg_type);
 
             if (arg_type == context.langtype(primitive_type::ERROR))
@@ -73,7 +74,7 @@ auto function_decl_stmt::do_semantic_analysis(sema_ctx& context) const -> semant
         }
         context.pop_local_stack();
 
-        auto [return_type_specifier_ty, return_type_valid, can_consteval] = return_type->semantic_analysis(context);
+        auto [return_type_specifier_ty, return_type_valid, can_consteval, _] = return_type->semantic_analysis(context);
         if (return_type_specifier_ty != context.langtype(primitive_type::META))
         {
             context.get_compiler_ctx().report_diagnostic({

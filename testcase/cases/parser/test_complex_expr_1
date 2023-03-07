@@ -1,0 +1,9 @@
+fn func()
+{
+    var a = 2u;
+    var b=3u;
+    var c=5u;
+    var result=0u;
+
+        result = ~a + b * c - (a % b) / c + ++(a * b) - (a & b) | (c ^ b) << 2 - (a | b) && (a && c) | !(b && c);
+}

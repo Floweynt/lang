@@ -1,0 +1,36 @@
+fn success(var v: int) -> int;
+fn error(var v: int) -> int;
+fn put_prompt() -> int;
+
+fn bin2gray(var binary: uint32) -> uint32
+{
+    return ((binary / 2u) ^ binary);
+}
+
+fn gray2bin(var gray: uint32) -> uint32
+{
+    var binary = gray;
+    while (gray = gray / 2u) {
+        binary = binary ^ gray;
+    }
+    return (binary);
+}
+
+fn testcase(var v: uint32, var i: int)
+{
+    if ( gray2bin(bin2gray(v)) == v)
+        success(i);
+    else
+        error(i);
+}
+
+fn main()
+{
+    testcase(0x1234567u, 0);
+    testcase(0x12345678u, 1);
+    testcase(0x55aa55aau, 2);
+    testcase(0xffffffffu, 3);
+    testcase(0x00000000u, 4);
+    testcase(0xdeaddeadu, 5);
+    testcase(0xabcedf00u, 6);
+}

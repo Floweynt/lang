@@ -80,6 +80,7 @@ public:
         INTEGRAL_UNSIGNED_B16,
         INTEGRAL_UNSIGNED_B32,
         INTEGRAL_UNSIGNED_B64,
+        INTEGRAL_UMAX,
         FLOATING_B32,
         FLOATING_B64,
         CHAR_B8,

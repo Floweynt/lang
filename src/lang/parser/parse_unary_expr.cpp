@@ -4,7 +4,6 @@
 static auto tok_to_unary_op(token::operators op) -> unary_op_type
 {
     static constexpr int TOK_TO_BIN_OP[] = {
-        -1,
         OP_INC,
         OP_DEC,
         -1,

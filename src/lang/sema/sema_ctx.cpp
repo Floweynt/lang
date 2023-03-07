@@ -78,6 +78,8 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
     add_type(std::make_unique<primitive_type>("builtin::uint16", type::IS_INSTANTIABLE_TYPE | type::IS_INTEGRAL_TYPE, llvm_integral<16>));
     add_type(std::make_unique<primitive_type>("builtin::uint32", type::IS_INSTANTIABLE_TYPE | type::IS_INTEGRAL_TYPE, llvm_integral<32>));
     add_type(std::make_unique<primitive_type>("builtin::uint64", type::IS_INSTANTIABLE_TYPE | type::IS_INTEGRAL_TYPE, llvm_integral<64>));
+    add_type(std::make_unique<primitive_type>("builtin::uintmax", type::IS_INSTANTIABLE_TYPE | type::IS_INTEGRAL_TYPE,
+                                              llvm_integral<64>)); // TODO: dynamic
     add_type(std::make_unique<primitive_type>("builtin::float32", type::IS_INSTANTIABLE_TYPE | type::IS_FLOATING_TYPE, nullptr));
     add_type(std::make_unique<primitive_type>("builtin::float64", type::IS_INSTANTIABLE_TYPE | type::IS_FLOATING_TYPE, nullptr));
     add_type(std::make_unique<primitive_type>("builtin::char8", type::IS_INSTANTIABLE_TYPE | type::IS_CHAR_TYPE, llvm_integral<8>));
@@ -106,6 +108,7 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
                                                   .add_type("b16", langtype(primitive_type::INTEGRAL_UNSIGNED_B16))
                                                   .add_type("b32", langtype(primitive_type::INTEGRAL_UNSIGNED_B32))
                                                   .add_type("b64", langtype(primitive_type::INTEGRAL_UNSIGNED_B64))
+                                                  .add_type("max", langtype(primitive_type::INTEGRAL_UMAX))
                                                   .build("unsigned"));
 
     const auto* integrals =
@@ -138,9 +141,8 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
     };
 
     auto unsigned_list = {
-        langtype(primitive_type::INTEGRAL_UNSIGNED_B64),
-        langtype(primitive_type::INTEGRAL_UNSIGNED_B32),
-        langtype(primitive_type::INTEGRAL_UNSIGNED_B16),
+        langtype(primitive_type::INTEGRAL_MAX),          langtype(primitive_type::INTEGRAL_UNSIGNED_B64),
+        langtype(primitive_type::INTEGRAL_UNSIGNED_B32), langtype(primitive_type::INTEGRAL_UNSIGNED_B16),
         langtype(primitive_type::INTEGRAL_UNSIGNED_B8),
     };
 
@@ -153,7 +155,7 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
     };
 
     for (auto oper :
-         {OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_EQ, OP_NEQ, OP_LESS, OP_GREATER, OP_GEQ, OP_LEQ, OP_BITWISE_AND, OP_BITWISE_OR, OP_BITWISE_XOR})
+         {OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_EQ, OP_NEQ, OP_LESS, OP_GREATER, OP_GEQ, OP_LEQ, OP_BITWISE_AND, OP_BITWISE_OR, OP_BITWISE_XOR})
     {
         for (const auto* rhs : integral_list)
         {
@@ -171,17 +173,29 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
         }
     }
 
-    for(const auto *numeric : numeric_list)
+    for (auto oper : {OP_ADD_ASSIGN, OP_SUB_ASSIGN, OP_MUL_ASSIGN, OP_DIV_ASSIGN, OP_MOD_ASSIGN, OP_AND_ASSIGN, OP_XOR_ASSIGN, OP_OR_ASSIGN})
     {
-        for(const auto *shiftand : unsigned_list)
+        for (ssize_t i = 0; i < 5; i++)
+        {
+            for (ssize_t j = 4; j >= i; j--)
+            {
+                add_binary_operator(oper, integral_list.begin()[i], integral_list.begin()[j], integral_list.begin()[i]);
+                add_binary_operator(oper, unsigned_list.begin()[i], unsigned_list.begin()[j], unsigned_list.begin()[i]);
+            }
+        }
+    }
+
+    for (const auto* numeric : numeric_list)
+    {
+        for (const auto* shiftand : unsigned_list)
         {
             add_binary_operator(OP_SHR, numeric, shiftand, numeric);
         }
     }
 
-    for(const auto *type : unsigned_list)
+    for (const auto* type : unsigned_list)
     {
-        for(const auto *shiftand : unsigned_list)
+        for (const auto* shiftand : unsigned_list)
         {
             add_binary_operator(OP_SHL, type, shiftand, type);
         }
@@ -204,11 +218,24 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
 
     scoped_vars.emplace_back(true);
     ast_stack.push(nullptr);
+
+    literal_integer_specifiers[""] = langtype(primitive_type::INTEGRAL_SIGNED_B32);
+    literal_integer_specifiers["i"] = langtype(primitive_type::INTEGRAL_SIGNED_B32);
+    literal_integer_specifiers["u"] = langtype(primitive_type::INTEGRAL_UNSIGNED_B32);
+    literal_integer_specifiers["i8"] = langtype(primitive_type::INTEGRAL_SIGNED_B8);
+    literal_integer_specifiers["u8"] = langtype(primitive_type::INTEGRAL_UNSIGNED_B8);
+    literal_integer_specifiers["i16"] = langtype(primitive_type::INTEGRAL_SIGNED_B16);
+    literal_integer_specifiers["u16"] = langtype(primitive_type::INTEGRAL_UNSIGNED_B16);
+    literal_integer_specifiers["i32"] = langtype(primitive_type::INTEGRAL_SIGNED_B32);
+    literal_integer_specifiers["u32"] = langtype(primitive_type::INTEGRAL_UNSIGNED_B32);
+    literal_integer_specifiers["i64"] = langtype(primitive_type::INTEGRAL_SIGNED_B64);
+    literal_integer_specifiers["u64"] = langtype(primitive_type::INTEGRAL_UNSIGNED_B64);
+    literal_floating_specifiers[""] = langtype(primitive_type::FLOATING_B32);
 }
 
-auto sema_ctx::add_type(std::unique_ptr<type> ty) -> type_descriptor
+auto sema_ctx::add_type(std::unique_ptr<type> type) -> type_descriptor
 {
-    curr_parsed_types.push_back(std::move(ty));
+    curr_parsed_types.push_back(std::move(type));
     return curr_parsed_types.back().get();
 }
 
@@ -263,7 +290,8 @@ auto sema_ctx::make_simple_lambda_function(type_descriptor return_ty, const std:
                                    [](const std::string& folder, type_descriptor value) { return folder + ", " + value->get_name(); });
         }
 
-        lambda_types[{return_ty, rhs}] = add_type(std::make_unique<trivial_function_type>(return_ty->get_name() + "(" + name + ")", return_ty, rhs));
+        lambda_signature sig = {return_ty, rhs};
+        lambda_types[sig] = add_type(std::make_unique<trivial_function_type>(return_ty->get_name() + "(" + name + ")", return_ty, rhs));
     }
 
     return lambda_types.at({return_ty, rhs});
@@ -362,3 +390,28 @@ auto sema_ctx::get_comptime_value(const std::string& str) -> ct_value
 }
 
 auto sema_ctx::resolve_attribtue(const std::string& /*name*/, const std::vector<type_descriptor>& /*desc*/) -> bool { return false; }
+
+auto sema_ctx::resolve_literal_string(const std::string& name) const -> type_descriptor
+{
+    if (!literal_string_specifiers.contains(name))
+    {
+        return langtype(primitive_type::ERROR);
+    }
+    return literal_string_specifiers.at(name);
+}
+auto sema_ctx::resolve_literal_integer(const std::string& name) const -> type_descriptor
+{
+    if (!literal_integer_specifiers.contains(name))
+    {
+        return langtype(primitive_type::ERROR);
+    }
+    return literal_integer_specifiers.at(name);
+}
+auto sema_ctx::resolve_literal_floating(const std::string& name) const -> type_descriptor
+{
+    if (!literal_floating_specifiers.contains(name))
+    {
+        return langtype(primitive_type::ERROR);
+    }
+    return literal_floating_specifiers.at(name);
+}

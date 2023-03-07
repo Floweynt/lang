@@ -8,6 +8,7 @@
 #include "lang/codegen/codegen_value.h"
 #include "lang/sema/sema_ctx.h"
 #include "lang/sema/types.h"
+#include "lang/utils/utils.h"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/GlobalValue.h>
 #include <llvm/IR/Verifier.h>
@@ -24,7 +25,7 @@ auto do_sema_func(sema_ctx& context, const std::vector<ast_ref>& args, const ast
     context.push_local_stack();
     for (const auto& arg : args)
     {
-        auto [arg_type, valid, _] = arg->semantic_analysis(context);
+        auto [arg_type, valid, _, _] = arg->semantic_analysis(context);
         arg_types.push_back(arg_type);
 
         if (arg_type == context.langtype(primitive_type::ERROR))
@@ -40,7 +41,7 @@ auto do_sema_func(sema_ctx& context, const std::vector<ast_ref>& args, const ast
 
     if (return_type)
     {
-        auto [return_type_specifier_ty, return_type_valid, can_consteval] = return_type->semantic_analysis(context);
+        auto [return_type_specifier_ty, return_type_valid, can_consteval, _] = return_type->semantic_analysis(context);
 
         if (return_type_specifier_ty != context.langtype(primitive_type::META))
         {
@@ -79,7 +80,7 @@ auto do_sema_func(sema_ctx& context, const std::vector<ast_ref>& args, const ast
                 if (ast.get_ast_kind() == RETURN_EXPR)
                 {
                     const auto* returned_ty = dynamic_cast<const return_expr&>(ast).get_value()->get_sema_result().ty;
-                    if (!context.exists_conversion(returned_ty, return_ty))
+                    if (!context.exists_conversion(returned_ty, return_ty) && returned_ty != context.langtype(primitive_type::ERROR))
                     {
                         valid = false;
                         context.get_compiler_ctx().report_diagnostic({

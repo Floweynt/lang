@@ -1,5 +1,4 @@
-
-auto main()
+fn main()
 {
         var a: int = 
 		if ( !1 != !(!2 && !3) ) 

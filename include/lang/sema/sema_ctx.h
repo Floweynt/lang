@@ -103,6 +103,10 @@ private:
 
     std::unordered_map<std::string, type_descriptor> known_vars;
 
+    std::unordered_map<std::string, type_descriptor> literal_string_specifiers;
+    std::unordered_map<std::string, type_descriptor> literal_integer_specifiers;
+    std::unordered_map<std::string, type_descriptor> literal_floating_specifiers;
+
     std::vector<std::string> curr_namespace;
     simple_namespace* root_ns;
 
@@ -151,6 +155,10 @@ public:
 
     auto resolve_attribtue(const std::string& name, const std::vector<type_descriptor>& desc) -> bool;
 
+    auto resolve_literal_string(const std::string& name) const -> type_descriptor;
+    auto resolve_literal_integer(const std::string& name) const -> type_descriptor;
+    auto resolve_literal_floating(const std::string& name) const -> type_descriptor;
+
     constexpr auto get_current_scope() -> auto& { return scoped_vars.back(); }
     constexpr auto get_current_scope() const -> const auto& { return scoped_vars.back(); }
 
@@ -167,4 +175,10 @@ struct semantic_analysis_result
     type_descriptor ty{};
     bool is_valid{};
     bool can_be_constexpr = false;
+
+    enum value_category
+    {
+        LVALUE,
+        RVALUE
+    } category = RVALUE;
 };

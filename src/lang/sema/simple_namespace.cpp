@@ -6,8 +6,7 @@
 #include <stdexcept>
 #include <variant>
 
-simple_namespace::simple_namespace(const std::string& name,
-                                   std::unordered_map<std::string, std::variant<ct_value, type_descriptor>> members)
+simple_namespace::simple_namespace(const std::string& name, std::unordered_map<std::string, std::variant<ct_value, type_descriptor>> members)
     : type(name, 0), members(std::move(members))
 {
 }

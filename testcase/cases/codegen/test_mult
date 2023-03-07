@@ -1,0 +1,42 @@
+fn success(var v: int) -> int;
+fn error(var v: int) -> int;
+fn put_prompt() -> int;
+
+fn mult(var a: uint32, var b: uint32) -> uint64
+{
+    var i = 0u;
+    var ret = 0u64;
+    var c : uint64 = 1u64 * b;
+
+    while (i < 32u)
+    {
+        if ((a & (1u << i)))
+            ret = ret + c;
+
+        c = c * 2u;
+
+        i = i + 1u;
+    }
+
+    return (ret);
+}
+
+fn testcase(var a: uint32, var b: uint32, var i: int)
+{
+//   @utils::dump_type(1u64 * a);
+    if (mult(a, b) == 1u64 * a * b)
+        success(i);
+    else
+        error(i);
+}
+
+fn main()
+{
+    testcase(5u, 7u, 0);
+    testcase(100u, 100u, 1);
+    testcase(10000u, 100u, 2);
+    testcase(0x12345678u, 0xffffffffu, 3);
+    testcase(1233413u, 8203424u, 4);
+    testcase(0xffffffffu, 0xffffffffu, 5);
+    testcase(567890u, 98765u, 6);
+}

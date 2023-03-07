@@ -8,6 +8,8 @@
 #include <stdexcept>
 #include <utility>
 
+// DO NOT REORDER
+#include "lang/utils/utils.h"
 auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
     type_descriptor type = nullptr;
@@ -23,7 +25,7 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
             return {context.langtype(primitive_type::ERROR), false};
         }
 
-        auto [init_type, is_init_valid, _] = initializer->semantic_analysis(context);
+        auto [init_type, is_init_valid, _, _] = initializer->semantic_analysis(context);
         if (!is_init_valid)
         {
             return {init_type, false};
@@ -33,7 +35,7 @@ auto variable_decl_expr::do_semantic_analysis(sema_ctx& context) const -> semant
     }
     else
     {
-        auto [start, end, can_consteval] = ty->semantic_analysis(context);
+        auto [start, end, can_consteval, _] = ty->semantic_analysis(context);
         if (start != context.langtype(primitive_type::META))
         {
             context.get_compiler_ctx().report_diagnostic({

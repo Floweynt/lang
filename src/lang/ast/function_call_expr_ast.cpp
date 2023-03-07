@@ -6,6 +6,9 @@
 #include <optional>
 #include <ranges>
 
+// DO NOT REORDER
+#include "lang/utils/utils.h"
+
 function_call_expr::function_call_expr(code_location start, code_location end, ast_ref callee, std::vector<ast_ref> args)
     : base_ast(start, end, FUNCTION_CALL_EXPR), callee(std::move(callee)), args(std::move(args))
 {
@@ -27,14 +30,14 @@ auto function_call_expr::do_semantic_analysis(sema_ctx& context) const -> semant
     bool call_types_valid = true;
     for (const auto& arg : args)
     {
-        auto [ty, valid, _] = arg->semantic_analysis(context);
+        auto [ty, valid, _, _] = arg->semantic_analysis(context);
         if (!valid)
         {
             call_types_valid = false;
         }
         types.push_back(ty);
     }
-    auto [invokee_ty, valid, _] = callee->semantic_analysis(context);
+    auto [invokee_ty, valid, _, _] = callee->semantic_analysis(context);
 
     // there has been an error trying to invoke stuff
     if (invokee_ty == context.langtype(primitive_type::ERROR))
@@ -72,6 +75,11 @@ auto function_call_expr::do_semantic_analysis(sema_ctx& context) const -> semant
 
 auto function_call_expr::do_codegen(codegen_ctx& context) const -> codegen_value
 {
+    if (callee->get_sema_result().ty->is_comptime_only_builtin_func())
+    {
+        return context.get_void_val();
+    }
+
     std::vector<codegen_value> values(args.size());
     std::transform(args.begin(), args.end(), values.begin(), [&context](const ast_ref& ast) { return ast->codegen(context); });
     return callee->get_sema_result().ty->invoke_codegen(context, callee->codegen(context), values);

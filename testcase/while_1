@@ -1,9 +1,0 @@
-auto main()
-{
-        var i: int = 0;
-        var sum: int = 0;
-
-        while(i<100) {
-                sum += i;
-        }
-}

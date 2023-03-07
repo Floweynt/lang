@@ -1,5 +1,6 @@
 #include "lang/ast/name_ref_expr_ast.h"
 
+#include "lang/sema/sema_ctx.h"
 #include "lang/sema/types.h"
 #include <utility>
 
@@ -14,7 +15,7 @@ auto name_ref_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_an
     }
     else if (type == context.langtype(primitive_type::META))
     {
-        return {type, type != context.langtype(primitive_type::ERROR), true};
+        return {type, type != context.langtype(primitive_type::ERROR), true, semantic_analysis_result::LVALUE};
     }
 
     return {type, type != context.langtype(primitive_type::ERROR)};

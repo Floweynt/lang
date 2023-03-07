@@ -1,0 +1,38 @@
+fn success(var v: int) -> int;
+fn error(var v: int) -> int;
+fn put_prompt() -> int;
+
+fn bitflips(var v: uint32) -> uint32
+{
+    var i = 0u;
+    var ret = 0u;
+
+    while (i < 32u)
+    {
+        if (!(v & (1u << i)))
+            ret = ret | (1u << i);
+
+        i = i + 1u;
+    }
+
+    return (ret);
+}
+
+fn testcase(var v: uint32, var i: int)
+{
+    if (bitflips(v) == ~v)
+        success(i);
+    else
+        error(i);
+}
+
+fn main()
+{
+    testcase(0x1234567u, 0);
+    testcase(0x12345678u, 1);
+    testcase(0x55aa55aau, 2);
+    testcase(0xffffffffu, 3);
+    testcase(0x00000000u, 4);
+    testcase(0xdeaddeadu, 5);
+    testcase(0xabcedf00u, 6);
+}

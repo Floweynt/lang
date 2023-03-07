@@ -63,6 +63,10 @@ public:
 
     auto convert_to(type_descriptor target, const codegen_value& from) -> codegen_value;
 
+    auto make_literal_string(const std::string& name, const std::string& value) -> codegen_value;
+    auto make_literal_integer(const std::string& name, intmax_t value) -> codegen_value;
+    auto make_literal_floating(const std::string& name, long double value) -> codegen_value;
+
     // builder helpers
     inline auto get_insert_block() { return builder().GetInsertBlock(); }
     inline void set_insert_block(llvm::BasicBlock* block) { builder().SetInsertPoint(block); }

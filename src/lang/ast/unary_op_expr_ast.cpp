@@ -7,11 +7,12 @@
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Value.h>
 #include <stdexcept>
+#include "lang/utils/utils.h"
 
 auto unary_op_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
 
-    auto [op_type, op_valid, _] = expr->semantic_analysis(context);
+    auto [op_type, op_valid, _, _] = expr->semantic_analysis(context);
 
     if (!op_valid)
     {
@@ -54,12 +55,18 @@ namespace
         {
             switch (op)
             {
-            case OP_INC:
-                return codegen_value::make_constant(
+            case OP_INC: {
+                auto add_result = codegen_value::make_constant(
                     expr_type, ctx.builder().CreateAdd(llvm_value, llvm::ConstantInt::get(llvm_type, 1), codegen_name("unary_pre_inc")));
-            case OP_DEC:
-                return codegen_value::make_constant(
+                expr_value.store_value(ctx, add_result);
+                return add_result;
+            }
+            case OP_DEC: {
+                auto dec_result = codegen_value::make_constant(
                     expr_type, ctx.builder().CreateAdd(llvm_value, llvm::ConstantInt::get(llvm_type, -1), codegen_name("unary_pre_dec")));
+                expr_value.store_value(ctx, dec_result);
+                return dec_result;
+            }
             case OP_LOGICAL_NOT:
                 return codegen_value::make_constant(
                     expr_type, ctx.builder().CreateICmpEQ(llvm_value, llvm::ConstantInt::get(llvm_type, 0), codegen_name("unary_lnot")));
@@ -82,7 +89,7 @@ auto unary_op_expr::do_codegen(codegen_ctx& context) const -> codegen_value
 {
     auto result = try_primitive_operator_codegen(op, get_sema_result().ty, expr->codegen(context), context);
 
-    if(result.get_type() == nullptr)
+    if (result.get_type() == nullptr)
     {
         throw std::runtime_error("internal error: unable to implement");
     }

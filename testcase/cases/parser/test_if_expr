@@ -1,0 +1,6 @@
+using int = @lang::types::integral::signed::b32;
+
+auto main()
+{
+    var a: int = if (0) 3; else 4;;
+}

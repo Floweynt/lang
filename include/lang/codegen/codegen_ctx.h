@@ -11,13 +11,20 @@
 #include <llvm/IR/NoFolder.h>
 #include <llvm/IR/Value.h>
 #include <memory>
+#include <unordered_map>
 // this context contains some duplicate info in relation to sema_ctx
 
 class codegen_value;
 
+void register_binary_operator_codegen(codegen_ctx& ctx);
+
 // this the "context" passed into all of codegen, representing the state of the code generation
 class codegen_ctx
 {
+public:
+    using binary_op_codegen_handler = llvm::Value* (*)(codegen_ctx& ctx, codegen_value lhs, codegen_value rhs, type_descriptor return_ty);
+
+private:
     // standard LLVM
     llvm::LLVMContext my_llvm_ctx;
     llvm::IRBuilder<> ir_builder;
@@ -37,6 +44,8 @@ class codegen_ctx
 
     // the return type of the first function one would encounter by going up the AST
     type_descriptor func_return_ty;
+
+    std::unordered_map<binary_operator_signature, binary_op_codegen_handler> binop_handlers;
 
 public:
     codegen_ctx(sema_ctx& ctx);
@@ -90,5 +99,19 @@ public:
         set_insert_block(target);
         func(*this);
         set_insert_block(prev);
+    }
+
+    constexpr void register_binary_op_handler(const binary_operator_signature& signature, binary_op_codegen_handler callback)
+    {
+        binop_handlers[signature] = callback;
+    }
+
+    constexpr auto get_binary_op_handler(const binary_operator_signature& signature) const -> binary_op_codegen_handler
+    {
+        if (binop_handlers.contains(signature))
+        {
+            return binop_handlers.at(signature);
+        }
+        return nullptr;
     }
 };

@@ -1,6 +1,7 @@
 fn success(var v: int) -> int;
 fn error(var v: int) -> int;
 fn put_prompt() -> int;
+fn exit(var exit_code: int) -> int;
 
 fn mult(var a: uint32, var b: uint32) -> uint64
 {
@@ -23,11 +24,13 @@ fn mult(var a: uint32, var b: uint32) -> uint64
 
 fn testcase(var a: uint32, var b: uint32, var i: int)
 {
-//   @utils::dump_type(1u64 * a);
     if (mult(a, b) == 1u64 * a * b)
         success(i);
     else
+    {
         error(i);
+        exit(-1);
+    }
 }
 
 fn main()
@@ -39,4 +42,5 @@ fn main()
     testcase(1233413u, 8203424u, 4);
     testcase(0xffffffffu, 0xffffffffu, 5);
     testcase(567890u, 98765u, 6);
+    exit(0);
 }

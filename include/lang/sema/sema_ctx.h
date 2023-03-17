@@ -72,6 +72,8 @@ struct std::hash<std::pair<type_descriptor, type_descriptor>>
 
 class base_ast;
 
+void register_operators(sema_ctx& ctx);
+
 class sema_ctx
 {
 public:

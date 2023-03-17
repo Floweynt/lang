@@ -154,56 +154,10 @@ sema_ctx::sema_ctx(compiler_context& ctx) : compiler_ctx(ctx)
         langtype(primitive_type::INTEGRAL_UNSIGNED_B8),
     };
 
-    for (auto oper :
-         {OP_ADD, OP_SUB, OP_MUL, OP_DIV, OP_MOD, OP_EQ, OP_NEQ, OP_LESS, OP_GREATER, OP_GEQ, OP_LEQ, OP_BITWISE_AND, OP_BITWISE_OR, OP_BITWISE_XOR})
-    {
-        for (const auto* rhs : integral_list)
-        {
-            for (const auto* lhs : integral_list)
-            {
-                add_binary_operator(oper, lhs, rhs, first_match(rhs, lhs, integral_list));
-            }
-        }
-        for (const auto* rhs : unsigned_list)
-        {
-            for (const auto* lhs : unsigned_list)
-            {
-                add_binary_operator(oper, lhs, rhs, first_match(rhs, lhs, unsigned_list));
-            }
-        }
-    }
-
-    for (auto oper : {OP_ADD_ASSIGN, OP_SUB_ASSIGN, OP_MUL_ASSIGN, OP_DIV_ASSIGN, OP_MOD_ASSIGN, OP_AND_ASSIGN, OP_XOR_ASSIGN, OP_OR_ASSIGN})
-    {
-        for (ssize_t i = 0; i < 5; i++)
-        {
-            for (ssize_t j = 4; j >= i; j--)
-            {
-                add_binary_operator(oper, integral_list.begin()[i], integral_list.begin()[j], integral_list.begin()[i]);
-                add_binary_operator(oper, unsigned_list.begin()[i], unsigned_list.begin()[j], unsigned_list.begin()[i]);
-            }
-        }
-    }
-
-    for (const auto* numeric : numeric_list)
-    {
-        for (const auto* shiftand : unsigned_list)
-        {
-            add_binary_operator(OP_SHR, numeric, shiftand, numeric);
-        }
-    }
-
-    for (const auto* type : unsigned_list)
-    {
-        for (const auto* shiftand : unsigned_list)
-        {
-            add_binary_operator(OP_SHL, type, shiftand, type);
-        }
-    }
+    register_operators(*this);
 
     for (const auto* type : numeric_list)
     {
-        add_binary_operator(OP_ASSIGN, type, type, type);
         add_conversion(type, langtype(primitive_type::BOOL));
         add_unary_operator(OP_INC, type, type);
         add_unary_operator(OP_DEC, type, type);

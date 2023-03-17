@@ -1,0 +1,50 @@
+fn success(var v: int) -> int;
+fn error(var v: int) -> int;
+fn put_prompt() -> int;
+fn put_u32(var v: uint32) -> int;
+fn exit(var exit_code: int) -> int;
+
+fn crc32(var data: uint32) -> uint32
+{
+    var CRC32_POLYNOMIAL = 0xEDB88320u;
+    var crc = 0xFFFFFFFFu;
+    crc ^= data;
+    var i=0;
+
+    while(i<32)
+    {
+        if (crc & 0x00000001u)
+        {
+            crc = (crc >> 1u) ^ CRC32_POLYNOMIAL;
+        }
+        else
+        {
+            crc = crc >> 1u;
+        }
+
+        ++i;
+    }
+
+    return (~crc);
+}
+
+fn testcase(var a: uint32, var c: uint32, var i: int)
+{
+    if (crc32(a) == c)
+        success(i);
+    else
+    {
+        error(i);
+        exit(-1);
+    }
+}
+
+fn main()
+{
+    testcase(0x0u, 0x2144df1cu, 0);
+    testcase(0x05u, 0x169a2f2eu, 1);
+    testcase(0xdeaddeadu, 0x63903b89u, 2);
+    testcase(0x55u, 0xdd97208cu, 3);
+    testcase(0x1234u, 0x41afc7f4u, 4);
+    exit(0);
+}

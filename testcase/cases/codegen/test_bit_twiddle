@@ -1,6 +1,7 @@
 fn success(var v: int) -> int;
 fn error(var v: int) -> int;
 fn put_prompt() -> int;
+fn exit(var exit_code: int) -> int;
 
 fn bitflips(var v: uint32) -> uint32
 {
@@ -21,9 +22,14 @@ fn bitflips(var v: uint32) -> uint32
 fn testcase(var v: uint32, var i: int)
 {
     if (bitflips(v) == ~v)
+    {
         success(i);
+    }
     else
+    {
         error(i);
+        exit(-1);
+    }
 }
 
 fn main()
@@ -35,4 +41,5 @@ fn main()
     testcase(0x00000000u, 4);
     testcase(0xdeaddeadu, 5);
     testcase(0xabcedf00u, 6);
+    exit(0);
 }

@@ -47,10 +47,15 @@ enum binary_op_type
     OP_OR_ASSIGN,
 };
 
-inline static constexpr const char* OPERATOR_SYMBOLS[] = {
+inline static constexpr const char* BINARY_OPERATOR_SYMBOLS[] = {
     ".", "&", "^", "|", ">>", "<<", "&&", "||", "<=>", "<",  "<=",  ">",   ">=", "==", "!=", "+",
     "-", "*", "/", "%", "=",  "+=", "-=", "*=", "/=",  "%=", "<<=", ">>=", "&=", "^=", "|=",
 };
+
+inline static constexpr const char* UNARY_OPERATOR_SYMBOLS[] = {
+    "++", "--", "!", "~", "+", "-"
+};
+
 
 enum unary_op_type
 {

@@ -4,10 +4,10 @@
 #include "lang/codegen/codegen_ctx.h"
 #include "lang/codegen/codegen_value.h"
 #include "lang/sema/types.h"
+#include "lang/utils/utils.h"
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Value.h>
 #include <stdexcept>
-#include "lang/utils/utils.h"
 
 auto unary_op_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
@@ -24,7 +24,8 @@ auto unary_op_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_an
     if (result_type == context.langtype(primitive_type::ERROR))
     {
         context.get_compiler_ctx().report_diagnostic(
-            {{operator_range, "unknown overload for unary operator; perhaps you failed to provide an overload?"},
+            {{operator_range,
+              std::string("unknown overload for unary operator '") + UNARY_OPERATOR_SYMBOLS[op] + "' ; perhaps you failed to provide an overload?"},
              std::nullopt,
              {{
                  expr->range(),
@@ -97,4 +98,7 @@ auto unary_op_expr::do_codegen(codegen_ctx& context) const -> codegen_value
     return result;
 }
 
-auto unary_op_expr::serialize() const -> std::string { return fmt::format("(unary_op_expression \"\" ({}))", expr->serialize()); }
+auto unary_op_expr::serialize() const -> std::string
+{
+    return fmt::format("(unary_op_expression \"{}\" ({}))", UNARY_OPERATOR_SYMBOLS[op], expr->serialize());
+}

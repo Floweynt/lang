@@ -6,8 +6,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: "Configure"
+          command: "meson setup build"
 workflows:
   build-and-test-compiler-workflow:
     jobs:

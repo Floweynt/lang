@@ -1,0 +1,14 @@
+version: 2.1
+jobs:
+  run-compiler-and-test:
+    docker:
+      - image: silkeh/clang
+    steps:
+      - checkout
+      - run:
+          name: "Say hello"
+          command: "echo Hello, World!"
+workflows:
+  run-compiler-and-test:
+    jobs:
+      - run-compiler-and-test

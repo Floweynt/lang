@@ -59,9 +59,8 @@ auto get_type_enum_name_from_value(llvm::RecordVal* val)
 auto handler(llvm::raw_ostream& /*ostream*/, llvm::RecordKeeper& records) -> bool
 {
     auto binops = records.getAllDerivedDefinitions("binary_operator");
-    std::filesystem::create_directories("gen");
-    std::ofstream sema_register("gen/register_ops.cpp");
-    std::ofstream binop_codegen("gen/binop_codegen.cpp");
+    std::ofstream sema_register("register_ops.cpp");
+    std::ofstream binop_codegen("binop_codegen.cpp");
 
     sema_register << fmt::format(REGISTER_OP_CPP_FORMAT,
                                  fmt::join(binops | std::views::transform([](llvm::Record* oper) {

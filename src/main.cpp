@@ -295,7 +295,8 @@ auto main(int argc, char** argv) -> int
     std::ifstream input(files.front());
     std::ifstream lib_types("stdlib/types");
 
-    std::istream read_in(new cat_streambuf(lib_types.rdbuf(), input.rdbuf()));
+    cat_streambuf streambuf(lib_types.rdbuf(), input.rdbuf());
+    std::istream read_in(&streambuf);
 
     compiler_context ctx(read_in);
     lexer lexer(ctx);

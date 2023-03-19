@@ -32,7 +32,7 @@ public:
     constexpr static auto make_null() -> codegen_value { return {}; }
 
     // obtains the actual value associated with this type; if it is a local, we must first deref the pointer
-    constexpr auto get_value(codegen_ctx& context) const -> llvm::Value*
+    inline auto get_value(codegen_ctx& context) const -> llvm::Value*
     {
         if (is_local())
         {
@@ -41,7 +41,7 @@ public:
         return value;
     }
 
-    constexpr auto store_value(codegen_ctx& context, const codegen_value& val) const
+    inline auto store_value(codegen_ctx& context, const codegen_value& val) const
     {
         if (!is_local())
         {

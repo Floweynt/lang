@@ -5,16 +5,16 @@
 class type;
 class ct_value
 {
-    const type* type;
+    const type* ty;
     std::any value;
 
 public:
     template <typename T>
-    ct_value(const class type* type, const T& val) : type(type), value(val)
+    ct_value(const type* ty, const T& val) : ty(ty), value(val)
     {
     }
 
-    [[nodiscard]] constexpr auto get_type() const { return type; }
+    [[nodiscard]] constexpr auto get_type() const { return ty; }
 
     template <typename T>
     auto get_value() const -> T

@@ -64,9 +64,7 @@ sources = [
 
 include_dirs = [
   'include',
-  'deps/stacktrace/include',
   'deps/magic_enum/include',
-  'deps/stacktrace/build',
   'deps/argparse/include', 
 ]
 

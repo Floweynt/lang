@@ -2,12 +2,18 @@ version: 2.1
 jobs:
   build-and-test-compiler:
     docker:
-      - image: silkeh/clang
+      - image: floweynt/arch-llvm16-meson
     steps:
       - checkout
       - run:
           name: "Configure"
-          command: "meson setup build"
+          command: "CC=clang CXX=clang++ meson setup build -Db_sanitize=address"
+      - run:
+          name: "Change directory to build"
+          command: "cd build"
+      - run:
+          name: "Build the compiler"
+          command: "ninja compiler"
 workflows:
   build-and-test-compiler-workflow:
     jobs:

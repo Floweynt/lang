@@ -16,7 +16,7 @@ jobs:
           command: "CC=clang CXX=clang++ meson setup build -Db_sanitize=address"
       - run:
           name: "Build the compiler"
-          command: "ninja -C build compiler"
+          command: "ninja -C build -j$(nproc) compiler"
 workflows:
   build-and-test-compiler-workflow:
     jobs:

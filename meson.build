@@ -83,15 +83,15 @@ operator_tblgen = executable(
 
 operator_tablegen_files = custom_target(
   'operator-tablgen-files', 
-  output: ['binop_codegen.cpp', 'register_ops.cpp'], 
+  command: [operator_tblgen, '@INPUT@'],
   input: ['operators.td'], 
-  command: [operator_tblgen, '@INPUT@']
+  output: ['binop_codegen.cpp', 'register_ops.cpp']
 )
 
-executable(
+compiler = executable(
   'compiler', 
+  operator_tablegen_files,
   sources, 
-  operator_tablegen_files, 
   dependencies: [llvm_dep], 
-  include_directories: include_directories(include_dirs),
+  include_directories: include_directories(include_dirs)
 )

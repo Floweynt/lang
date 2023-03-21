@@ -9,31 +9,13 @@
 #include <llvm/TableGen/TableGenBackend.h>
 #include <ranges>
 
-inline constexpr auto REGISTER_OP_CPP_FORMAT = R"(#include "lang/sema/sema_ctx.h"
-void register_operators(sema_ctx& ctx)
-{{
-{}
-}}
-)";
+inline constexpr auto REGISTER_OP_CPP_FORMAT = "#include \"lang/sema/sema_ctx.h\"\nvoid register_operators(sema_ctx& ctx) {{ {} }}\n";
 
-inline constexpr auto REGISTER_OP_CODEGEN_FORMAT = R"(#include "lang/sema/sema_ctx.h"
-void register_binary_operator_codegen(codegen_ctx& ctx)
-{{
-{}
-}}
-)";
-
-inline constexpr auto REGISTER_CODEGEN_HANDLER_FORMAT = R"(#include "lang/sema/sema_ctx.h"
-#include "lang/sema/register_ops.h"
-
-)";
+inline constexpr auto REGISTER_OP_CODEGEN_FORMAT =
+    "#include \"lang/sema/sema_ctx.h\"\n void register_binary_operator_codegen(codegen_ctx& ctx) {{ {} }}\n";
 
 inline constexpr auto SIMPLE_CODEGEN_HANDLER_FORMAT =
-    R"(static llvm::Value* {}(codegen_ctx& ctx, codegen_value lhs, codegen_value rhs, type_descriptor return_ty)
-{{
-    {}
-}}
-)";
+    "static llvm::Value* {}(codegen_ctx& ctx, codegen_value lhs, codegen_value rhs, type_descriptor return_ty) {{ {} }}\n";
 
 template <>
 struct fmt::formatter<llvm::StringRef>
@@ -61,23 +43,22 @@ auto handler(llvm::raw_ostream& /*ostream*/, llvm::RecordKeeper& records) -> boo
     auto binops = records.getAllDerivedDefinitions("binary_operator");
     std::ofstream sema_register("register_ops.cpp");
     std::ofstream binop_codegen("binop_codegen.cpp");
+    std::ofstream log("operator-tablegen.out");
 
     sema_register << fmt::format(REGISTER_OP_CPP_FORMAT,
-                                 fmt::join(binops | std::views::transform([](llvm::Record* oper) {
+                                 fmt::join(binops | std::views::transform([&log](llvm::Record* oper) {
                                                auto op_name = oper->getValueAsString("operator");
                                                auto lhs_type = get_type_enum_name_from_value(oper->getValue("lhs_type"));
                                                auto rhs_type = get_type_enum_name_from_value(oper->getValue("rhs_type"));
                                                auto result_type = get_type_enum_name_from_value(oper->getValue("result_type"));
-                                               std::cerr << "adding registration for " << oper->getName().str() << "\n";
+                                               log << "adding registration for " << oper->getName().str() << "\n";
                                                return fmt::format("ctx.add_binary_operator({}, ctx.langtype(primitive_type::{}), "
                                                                   "ctx.langtype(primitive_type::{}), ctx.langtype(primitive_type::{}));",
                                                                   op_name, lhs_type, rhs_type, result_type);
                                            }),
                                            "\n"));
 
-    binop_codegen << R"(#include "lang/codegen/codegen_ctx.h"
-#include "lang/codegen/codegen_value.h"
-    )";
+    binop_codegen << "#include \"lang/codegen/codegen_ctx.h\"\n#include \"lang/codegen/codegen_value.h\"\n";
 
     for (auto* oper : records.getAllDerivedDefinitions("arithmetic_binary_operator"))
     {

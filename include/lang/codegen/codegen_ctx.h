@@ -51,7 +51,7 @@ public:
     codegen_ctx(sema_ctx& ctx);
     constexpr auto llvm_ctx() -> auto& { return my_llvm_ctx; }
     constexpr auto builder() -> auto& { return ir_builder; }
-    constexpr auto module() -> auto& { return *curr_module; }
+    inline auto module() -> auto& { return *curr_module; }
     constexpr auto get_sema_ctx() -> auto& { return ctx; }
     [[nodiscard]] constexpr auto get_unit_ty() const { return unit_ty; }
 
@@ -101,12 +101,12 @@ public:
         set_insert_block(prev);
     }
 
-    constexpr void register_binary_op_handler(const binary_operator_signature& signature, binary_op_codegen_handler callback)
+    inline void register_binary_op_handler(const binary_operator_signature& signature, binary_op_codegen_handler callback)
     {
         binop_handlers[signature] = callback;
     }
 
-    constexpr auto get_binary_op_handler(const binary_operator_signature& signature) const -> binary_op_codegen_handler
+    inline auto get_binary_op_handler(const binary_operator_signature& signature) const -> binary_op_codegen_handler
     {
         if (binop_handlers.contains(signature))
         {

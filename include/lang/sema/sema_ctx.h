@@ -122,7 +122,7 @@ public:
 
     auto add_type(std::unique_ptr<type> type) -> type_descriptor;
 
-    constexpr auto langtype(primitive_type::kind type) const -> type_descriptor { return curr_parsed_types[type].get(); }
+    inline auto langtype(primitive_type::kind type) const -> type_descriptor { return curr_parsed_types[type].get(); }
 
     // overload stuff
     void add_binary_operator(binary_op_type op_type, type_descriptor lhs, type_descriptor rhs, type_descriptor ret);
@@ -161,15 +161,15 @@ public:
     auto resolve_literal_integer(const std::string& name) const -> type_descriptor;
     auto resolve_literal_floating(const std::string& name) const -> type_descriptor;
 
-    constexpr auto get_current_scope() -> auto& { return scoped_vars.back(); }
-    constexpr auto get_current_scope() const -> const auto& { return scoped_vars.back(); }
+    inline auto get_current_scope() -> auto& { return scoped_vars.back(); }
+    inline auto get_current_scope() const -> const auto& { return scoped_vars.back(); }
 
     constexpr auto is_function() const { return is_func; }
     constexpr void set_function(bool is_fn = true) { is_func = is_fn; }
 
     [[nodiscard]] constexpr auto get_ast_stack() const -> const auto& { return ast_stack; }
-    constexpr void push_ast(const base_ast* ast) { ast_stack.push(ast); }
-    constexpr void pop_ast() { ast_stack.pop(); }
+    inline  void push_ast(const base_ast* ast) { ast_stack.push(ast); }
+    inline void pop_ast() { ast_stack.pop(); }
 };
 
 struct semantic_analysis_result

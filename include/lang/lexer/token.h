@@ -154,7 +154,7 @@ public:
     [[nodiscard]] constexpr auto is(types tok) const -> bool { return type() == tok; }
 };
 
-constexpr auto from_integer_literal(const code_location& loc, const code_location& end, const std::string& value, int base) -> token
+inline auto from_integer_literal(const code_location& loc, const code_location& end, const std::string& value, int base) -> token
 {
     size_t index = 0;
     auto lit_value = std::stoll(value, &index, base);
@@ -162,7 +162,7 @@ constexpr auto from_integer_literal(const code_location& loc, const code_locatio
     return token(loc, end, token::TOK_INTEGER, literal_value<intmax_t>{lit_value, lit_specifier});
 }
 
-constexpr auto from_double_literal(const code_location& loc, const code_location& end, const std::string& value) -> token
+inline auto from_double_literal(const code_location& loc, const code_location& end, const std::string& value) -> token
 {
     size_t index = 0;
     auto lit_value = std::stold(value, &index);
@@ -170,7 +170,7 @@ constexpr auto from_double_literal(const code_location& loc, const code_location
     return token(loc, end, token::TOK_FLOATING, literal_value<long double>{lit_value, lit_specifier});
 }
 
-constexpr auto from_string_literal(compiler_context& ctx, const code_location& loc, const code_location& end, const std::string& value) -> token
+inline auto from_string_literal(compiler_context& ctx, const code_location& loc, const code_location& end, const std::string& value) -> token
 {
     std::string str = value.substr(1, value.find_last_of('"') - 1);
     std::string result;

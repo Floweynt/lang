@@ -74,10 +74,12 @@ llvm_dep = dependency(
   modules: ['all']
 )
 
+fmt_dep = dependency('fmt')
+
 operator_tblgen = executable(
   'operator-tblgen', 
   'tools/operator_tablegen.cpp', 
-  dependencies: [llvm_dep],
+  dependencies: [llvm_dep, fmt_dep],
   link_args: ['-lLLVMTableGen']
 )
 
@@ -92,6 +94,6 @@ compiler = executable(
   'compiler', 
   operator_tablegen_files,
   sources, 
-  dependencies: [llvm_dep], 
+  dependencies: [llvm_dep, fmt_dep], 
   include_directories: include_directories(include_dirs)
 )

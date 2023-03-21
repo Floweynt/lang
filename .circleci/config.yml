@@ -1,0 +1,23 @@
+version: 2.1
+jobs:
+  build-and-test-compiler:
+    docker:
+      - image: floweynt/arch-llvm16-meson:1.0
+    steps:
+      - checkout
+      - run:
+          name: "Pull submodules"
+          command: "sudo pacman -Sy fmt --needed --noconfirm"
+      - run:
+          name: "Pull submodules"
+          command: "git submodule update --init --recursive"
+      - run:
+          name: "Configure"
+          command: "CC=clang CXX=clang++ meson setup build -Db_sanitize=address"
+      - run:
+          name: "Build the compiler"
+          command: "ninja -C build compiler"
+workflows:
+  build-and-test-compiler-workflow:
+    jobs:
+      - build-and-test-compiler

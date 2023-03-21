@@ -9,6 +9,9 @@ jobs:
           name: "Configure"
           command: "CC=clang CXX=clang++ meson setup build -Db_sanitize=address"
       - run:
+          name: "Test: ls"
+          command: "ls"
+      - run:
           name: "Change directory to build"
           command: "cd build"
       - run:

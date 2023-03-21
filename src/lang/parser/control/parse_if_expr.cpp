@@ -1,5 +1,6 @@
 #include "../parser_util.h"
 #include "lang/ast/base_ast.h"
+#include "lang/ast/control/if_expr_ast.h"
 #include "lang/lexer/code_location.h"
 #include "lang/lexer/token.h"
 #include <lang/parser/parser.h>

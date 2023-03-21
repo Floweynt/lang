@@ -1,3 +1,4 @@
+#include "lang/ast/top_level_blk_ast.h"
 #include <lang/parser/parser.h>
 
 auto parse(lexer& lexer, compiler_context& ctx) -> ast_ref

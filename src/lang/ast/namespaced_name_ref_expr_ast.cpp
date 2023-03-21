@@ -3,6 +3,7 @@
 #include "lang/sema/ct_value.h"
 #include "lang/sema/sema_ctx.h"
 #include "lang/sema/types.h"
+#include "lang/utils/utils.h"
 #include <fmt/ranges.h>
 #include <ranges>
 #include <stdexcept>
@@ -11,7 +12,7 @@
 auto namespaced_name_ref_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
     // we do semantic analysis on the right-hand-side expressions
-    auto [lhs_type, lhs_fail, can_consteval, _] = lhs->semantic_analysis(context);
+    auto [lhs_type, lhs_fail, can_consteval, _t] = lhs->semantic_analysis(context);
     type_descriptor namespace_target = nullptr;
 
     if (lhs_type == context.langtype(primitive_type::META))
@@ -61,7 +62,7 @@ auto namespaced_name_ref_expr::do_semantic_analysis(sema_ctx& context) const -> 
 auto namespaced_name_ref_expr::do_consteval(sema_ctx& context) const -> ct_value
 {
     // we do semantic analysis on the right-hand-side expressions
-    auto [lhs_type, lhs_fail, can_consteval, _] = lhs->semantic_analysis(context);
+    auto [lhs_type, lhs_fail, can_consteval, _t] = lhs->semantic_analysis(context);
     type_descriptor namespace_target = nullptr;
 
     if (lhs_type == context.langtype(primitive_type::META))

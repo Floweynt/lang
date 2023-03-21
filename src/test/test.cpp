@@ -249,4 +249,3 @@ auto main(int argc, char** argv) -> int
     std::cerr << "Running testcases";
     auto& module = codegen.module();
 }
-

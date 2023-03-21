@@ -1,4 +1,5 @@
 #include "lang/ast/base_ast.h"
+#include "lang/ast/using_expr_ast.h"
 #include "lang/lexer/token.h"
 #include "parser_util.h"
 #include <lang/parser/parser.h>

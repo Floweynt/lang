@@ -168,7 +168,7 @@ public:
     constexpr void set_function(bool is_fn = true) { is_func = is_fn; }
 
     [[nodiscard]] constexpr auto get_ast_stack() const -> const auto& { return ast_stack; }
-    inline  void push_ast(const base_ast* ast) { ast_stack.push(ast); }
+    inline void push_ast(const base_ast* ast) { ast_stack.push(ast); }
     inline void pop_ast() { ast_stack.pop(); }
 };
 

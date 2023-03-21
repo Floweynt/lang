@@ -109,7 +109,10 @@ public:
         TOK_KW_MATCH,
         TOK_KW_CASE,
 
-        TOK_KW_STRUCT
+        TOK_KW_STRUCT,
+
+        TOK_KW_MODULE,
+        TOK_KW_IMPORT
     };
 
 private:

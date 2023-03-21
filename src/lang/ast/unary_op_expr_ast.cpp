@@ -12,7 +12,7 @@
 auto unary_op_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
 
-    auto [op_type, op_valid, _, _] = expr->semantic_analysis(context);
+    auto [op_type, op_valid, _t, _t] = expr->semantic_analysis(context);
 
     if (!op_valid)
     {

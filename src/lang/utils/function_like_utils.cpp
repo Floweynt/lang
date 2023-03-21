@@ -25,7 +25,7 @@ auto do_sema_func(sema_ctx& context, const std::vector<ast_ref>& args, const ast
     context.push_local_stack();
     for (const auto& arg : args)
     {
-        auto [arg_type, valid, _, _] = arg->semantic_analysis(context);
+        auto [arg_type, valid, _t, _t] = arg->semantic_analysis(context);
         arg_types.push_back(arg_type);
 
         if (arg_type == context.langtype(primitive_type::ERROR))

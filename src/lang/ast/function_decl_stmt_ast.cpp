@@ -7,6 +7,7 @@
 #include "lang/raii_guard.h"
 #include "lang/sema/types.h"
 #include "lang/utils/function_like_utils.h"
+#include "lang/utils/utils.h"
 #include <fmt/ranges.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/raw_ostream.h>
@@ -15,7 +16,6 @@
 #include <ranges>
 #include <stdexcept>
 #include <vector>
-#include "lang/utils/utils.h"
 
 function_decl_stmt::function_decl_stmt(code_location start, code_location end, std::vector<ast_ref> args, ast_ref return_type, ast_ref body,
                                        std::string name, ast_ref attributes)
@@ -63,7 +63,7 @@ auto function_decl_stmt::do_semantic_analysis(sema_ctx& context) const -> semant
         context.push_local_stack();
         for (const auto& arg : args)
         {
-            auto [arg_type, valid, _, _] = arg->semantic_analysis(context);
+            auto [arg_type, valid, _t, _t] = arg->semantic_analysis(context);
             arg_types.push_back(arg_type);
 
             if (arg_type == context.langtype(primitive_type::ERROR))

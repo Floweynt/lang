@@ -52,10 +52,7 @@ inline static constexpr const char* BINARY_OPERATOR_SYMBOLS[] = {
     "-", "*", "/", "%", "=",  "+=", "-=", "*=", "/=",  "%=", "<<=", ">>=", "&=", "^=", "|=",
 };
 
-inline static constexpr const char* UNARY_OPERATOR_SYMBOLS[] = {
-    "++", "--", "!", "~", "+", "-"
-};
-
+inline static constexpr const char* UNARY_OPERATOR_SYMBOLS[] = {"++", "--", "!", "~", "+", "-"};
 
 enum unary_op_type
 {

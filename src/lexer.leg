@@ -1,0 +1,108 @@
+#include <string>
+#include <variant>
+#include <fmt/core.h>
+#include <lang/lexer/lexer.h>
+#define _curr {start_line, start_col, start_bytes}, {ctx.line, ctx.col, ctx.bytes}
+
+return token({0, 0, 0}, {0, 0, 0}, token::TOK_EOF);
+ctx.ctx.report_error({ctx.line, ctx.col, ctx.bytes}, "unknown token: failed to parse token"); throw lexer_error();
+throw std::runtime_error("internal lexer error");
+
+# lexer stuff
+# comments
+//[^\n]* -> break;
+
+# identifiers and lang identifiers
+[a-zA-Z_]\w* -> return token(_curr, token::TOK_IDENTIFIER, buffer);
+@[a-zA-Z_]\w* -> return token(_curr, token::TOK_LANG_IDENTIFIER, buffer.substr(1));
+
+# match integers
+[+-]?\d+([a-zA-Z_]\w*)? -> return from_integer_literal(_curr, buffer, 10);
+[+-]?0x[0-9a-fA-F]+([a-zA-Z_]\w*)? -> return from_integer_literal(_curr, buffer.substr(2), 16);
+[+-]?0b[0-1]+([a-zA-Z_]\w*)? -> return from_integer_literal(_curr, buffer.substr(2), 2);
+[+-]?0[0-7]+([a-zA-Z_]\w*)? -> return from_integer_literal(_curr, buffer.substr(1), 8);
+
+# match characters
+'.'([a-zA-Z_]\w*)? -> return token(_curr, token::TOK_CHAR, buffer[1]);
+
+# match string literals
+# \"([^"\\]|\\.)*[a-zA-Z_]\w* -> return token(_curr, token::TOK_STRING, literal_value<std::string>(buffer.substr(1, buffer.size() - 2)));
+
+# match whitespaces
+\s+ -> break;
+"\0" -> return token({0, 0, 0}, {0, 0, 0}, token::TOK_EOF);
+
+# match operators
+"++" -> return token(_curr, token::TOK_OPERATOR, token::OP_INC);
+"--" -> return token(_curr, token::TOK_OPERATOR, token::OP_DEC);
+"." -> return token(_curr, token::TOK_OPERATOR, token::OP_MEMBER);
+"+" -> return token(_curr, token::TOK_OPERATOR, token::OP_PLUS);
+"-" -> return token(_curr, token::TOK_OPERATOR, token::OP_MINUS);
+"!" -> return token(_curr, token::TOK_OPERATOR, token::OP_LOGICAL_NOT);
+"~" -> return token(_curr, token::TOK_OPERATOR, token::OP_BITWISE_NOT);
+"*" -> return token(_curr, token::TOK_OPERATOR, token::OP_STAR);
+"&" -> return token(_curr, token::TOK_OPERATOR, token::OP_AT);
+"/" -> return token(_curr, token::TOK_OPERATOR, token::OP_DIV);
+"%" -> return token(_curr, token::TOK_OPERATOR, token::OP_MOD);
+"<<" -> return token(_curr, token::TOK_OPERATOR, token::OP_SHL);
+">>" -> return token(_curr, token::TOK_OPERATOR, token::OP_SHR);
+"<=>" -> return token(_curr, token::TOK_OPERATOR, token::OP_SPACESHIP);
+"<" -> return token(_curr, token::TOK_OPERATOR, token::OP_LESS);
+"<=" -> return token(_curr, token::TOK_OPERATOR, token::OP_LEQ);
+">" -> return token(_curr, token::TOK_OPERATOR, token::OP_GREATER);
+">=" -> return token(_curr, token::TOK_OPERATOR, token::OP_GEQ);
+"==" -> return token(_curr, token::TOK_OPERATOR, token::OP_EQ);
+"!=" -> return token(_curr, token::TOK_OPERATOR, token::OP_NEQ);
+"^" -> return token(_curr, token::TOK_OPERATOR, token::OP_BITWISE_XOR);
+"|" -> return token(_curr, token::TOK_OPERATOR, token::OP_BITWISE_OR);
+"&&" -> return token(_curr, token::TOK_OPERATOR, token::OP_LOGICAL_AND);
+"||" -> return token(_curr, token::TOK_OPERATOR, token::OP_LOGICAL_OR);
+"=" -> return token(_curr, token::TOK_OPERATOR, token::OP_ASSIGN);
+"+=" -> return token(_curr, token::TOK_OPERATOR, token::OP_ADD_ASSIGN);
+"-=" -> return token(_curr, token::TOK_OPERATOR, token::OP_SUB_ASSIGN);
+"*=" -> return token(_curr, token::TOK_OPERATOR, token::OP_MUL_ASSIGN);
+"/=" -> return token(_curr, token::TOK_OPERATOR, token::OP_DIV_ASSIGN);
+"%=" -> return token(_curr, token::TOK_OPERATOR, token::OP_MOD_ASSIGN);
+"<<=" -> return token(_curr, token::TOK_OPERATOR, token::OP_SHL_ASSIGN);
+">>=" -> return token(_curr, token::TOK_OPERATOR, token::OP_SHR_ASSIGN);
+"&=" -> return token(_curr, token::TOK_OPERATOR, token::OP_AND_ASSIGN);
+"^=" -> return token(_curr, token::TOK_OPERATOR, token::OP_XOR_ASSIGN);
+"|=" -> return token(_curr, token::TOK_OPERATOR, token::OP_OR_ASSIGN);
+"->" -> return token(_curr, token::TOK_OPERATOR, token::OP_ARROW);
+
+# punctuation
+"(" -> return token(_curr, token::TOK_PAREN_OPEN);
+")" -> return token(_curr, token::TOK_PAREN_CLOSE);
+"[" -> return token(_curr, token::TOK_BRACKET_OPEN);
+"]" -> return token(_curr, token::TOK_BRACKET_CLOSE);
+"[[" -> return token(_curr, token::TOK_ATTR_OPEN);
+"]]" -> return token(_curr, token::TOK_ATTR_CLOSE);
+"{" -> return token(_curr, token::TOK_BRACE_OPEN);
+"}" -> return token(_curr, token::TOK_BRACE_CLOSE);
+";" -> return token(_curr, token::TOK_SEMICOLON);
+":" -> return token(_curr, token::TOK_COLON);
+"," -> return token(_curr, token::TOK_COMMA);
+"\\" -> return token(_curr, token::TOK_BKSLASH);
+"..." -> return token(_curr, token::TOK_ELLIPSIS);
+"::" -> return token(_curr, token::TOK_DOUBLECOLON);
+
+# keywords
+"auto" -> return token(_curr, token::TOK_KW_AUTO);
+"fn" -> return token(_curr, token::TOK_KW_FN);
+"const" -> return token(_curr, token::TOK_KW_VAR);
+"var" -> return token(_curr, token::TOK_KW_VAR);
+"consteval" -> return token(_curr, token::TOK_KW_CONSTEVAL);
+"comptime" -> return token(_curr, token::TOK_KW_COMPTIME);
+"using" -> return token(_curr, token::TOK_KW_USING);
+"namespace" -> return token(_curr, token::TOK_KW_NAMESPACE);
+"yield" -> return token(_curr, token::TOK_KW_YIELD);
+"return" -> return token(_curr, token::TOK_KW_RETURN);
+"match" -> return token(_curr, token::TOK_KW_MATCH);
+"case" -> return token(_curr, token::TOK_KW_CASE);
+"if" -> return token(_curr, token::TOK_KW_IF);
+"else" -> return token(_curr, token::TOK_KW_ELSE);
+"while" -> return token(_curr, token::TOK_KW_WHILE);
+"for" -> return token(_curr, token::TOK_KW_FOR);
+"struct" -> return token(_curr, token::TOK_KW_STRUCT);
+"module" -> return token(_curr, token::TOK_KW_MODULE);
+"import" -> return token(_curr, token::TOK_KW_IMPORT);

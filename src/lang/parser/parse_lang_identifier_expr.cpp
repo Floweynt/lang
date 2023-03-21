@@ -1,3 +1,4 @@
+#include "lang/ast/lang_name_ref_expr_ast.h"
 #include <lang/parser/parser.h>
 
 auto parse_lang_identifier_expr(lexer& lexer, compiler_context& ctx) -> ast_ref

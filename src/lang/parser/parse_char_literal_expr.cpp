@@ -1,4 +1,5 @@
 #include "parser_util.h"
+#include "lang/ast/char_literal_expr_ast.h"
 #include <lang/parser/parser.h>
 
 auto parse_char_literal_expr(lexer& lexer, compiler_context& /*ctx*/) -> ast_ref

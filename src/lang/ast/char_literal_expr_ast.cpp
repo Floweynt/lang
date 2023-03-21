@@ -5,7 +5,7 @@
 #include "lang/sema/types.h"
 
 char_literal_expr::char_literal_expr(code_location start, code_location end, char val) : base_ast(start, end, CHAR_LITERAL), val(val) {}
-void char_literal_expr::visit_children(const std::function<void(const base_ast&)>& consumer) const {}
+void char_literal_expr::visit_children(const std::function<void(const base_ast&)>& /*consumer*/) const {}
 
 auto char_literal_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {

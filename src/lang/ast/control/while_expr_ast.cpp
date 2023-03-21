@@ -3,16 +3,16 @@
 #include "lang/ast/control/if_expr_ast.h"
 #include "lang/lexer/code_location.h"
 #include "lang/sema/types.h"
+#include "lang/utils/utils.h"
 #include <optional>
 #include <stdexcept>
-#include "lang/utils/utils.h"
 
 auto while_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
     bool works = true;
 
     type_descriptor return_type = nullptr;
-    auto [cond_type, condition_works, _, _] = condition->semantic_analysis(context);
+    auto [cond_type, condition_works, _t, _t] = condition->semantic_analysis(context);
 
     if (!context.exists_conversion(cond_type, context.langtype(primitive_type::BOOL)) && cond_type != context.langtype(primitive_type::ERROR))
     {
@@ -20,7 +20,7 @@ auto while_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
         context.get_compiler_ctx().report_diagnostic({{condition->range(), "cannot convert type '" + cond_type->get_name() + "' to bool"}});
     }
 
-    auto [_, body_works, _, _] = body->semantic_analysis(context);
+    auto [_t, body_works, _t, _t] = body->semantic_analysis(context);
     works = works && body_works && condition_works;
 
     if (dynamic_cast<block_expr*>(body.get()) != nullptr)
@@ -30,7 +30,7 @@ auto while_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
 
     if (else_branch)
     {
-        auto [else_type, is_valid, _, _] = else_branch->semantic_analysis(context);
+        auto [else_type, is_valid, _t, _t] = else_branch->semantic_analysis(context);
         works &= is_valid;
 
         if (else_type != return_type)

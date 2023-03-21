@@ -41,7 +41,4 @@ extern "C" auto read_int() -> int
     return val;
 }
 
-extern "C" auto builtin_popcount(unsigned val) -> unsigned
-{
-    return __builtin_popcount(val);
-}
+extern "C" auto builtin_popcount(unsigned val) -> unsigned { return __builtin_popcount(val); }

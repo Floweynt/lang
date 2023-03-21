@@ -1,3 +1,4 @@
+#include "lang/ast/lambda_expr_ast.h"
 #include "parser_util.h"
 #include <cstddef>
 #include <lang/parser/parser.h>

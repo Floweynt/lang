@@ -4,11 +4,11 @@
 #include "lang/ast/control/yield_expr_ast.h"
 #include "lang/raii_guard.h"
 #include "lang/sema/types.h"
+#include "lang/utils/utils.h"
 #include "lang/y_comb.h"
 #include <fmt/ranges.h>
 #include <functional>
 #include <ranges>
-#include "lang/utils/utils.h"
 
 block_expr::block_expr(code_location start, code_location end, std::vector<ast_ref> statements)
     : base_ast(start, end, BLOCK_EXPR, false), statements(std::move(statements))
@@ -39,7 +39,7 @@ auto block_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
     // we want to do semantic analysis for all subexpressions
     for (const auto& stmt : statements)
     {
-        auto [_, result, _, _] = stmt->semantic_analysis(context);
+        auto [_t, result, _t, _t] = stmt->semantic_analysis(context);
         sema_success &= result;
 
         if (stmt->get_ast_kind() == YIELD_EXPR)

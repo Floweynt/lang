@@ -1,5 +1,6 @@
 #include "parser_util.h"
 #include <lang/parser/parser.h>
+#include "lang/ast/paren_expr_ast.h"
 
 auto parse_paren_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {

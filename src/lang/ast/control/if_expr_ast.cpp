@@ -2,11 +2,11 @@
 #include "lang/codegen/codegen_ctx.h"
 #include "lang/lexer/code_location.h"
 #include "lang/sema/types.h"
+#include "lang/utils/utils.h"
 #include <fmt/ranges.h>
 #include <llvm/IR/BasicBlock.h>
 #include <optional>
 #include <ranges>
-#include "lang/utils/utils.h"
 
 auto if_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
@@ -26,7 +26,7 @@ auto if_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis
             });
         }
 
-        auto [body_type, is_body_valid, _, _] = branch.second->semantic_analysis(context);
+        auto [body_type, is_body_valid, _t, _t] = branch.second->semantic_analysis(context);
         works = works && is_body_valid && is_pred_valid;
 
         if (return_type == nullptr)
@@ -41,7 +41,7 @@ auto if_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis
 
     if (else_branch)
     {
-        auto [else_type, is_valid, _, _] = else_branch->semantic_analysis(context);
+        auto [else_type, is_valid, _t, _t] = else_branch->semantic_analysis(context);
         works &= is_valid;
         if (else_type != return_type)
         {
@@ -89,7 +89,8 @@ auto if_expr::do_codegen(codegen_ctx& context) const -> codegen_value
 
     for (size_t i = 0; i < branches.size(); i++)
     {
-        auto* predicate = context.convert_to(context.get_sema_ctx().langtype(primitive_type::BOOL), branches[i].first->codegen(context)).get_value(context);
+        auto* predicate =
+            context.convert_to(context.get_sema_ctx().langtype(primitive_type::BOOL), branches[i].first->codegen(context)).get_value(context);
         auto* if_body = context.make_new_block("if_body_br_" + std::to_string(i));
         auto* else_body = context.make_new_block("else_body_br_" + std::to_string(i));
 

@@ -1,3 +1,4 @@
+#include "lang/ast/name_ref_expr_ast.h"
 #include "parser_util.h"
 #include <lang/parser/parser.h>
 

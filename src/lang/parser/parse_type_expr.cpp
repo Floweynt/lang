@@ -1,5 +1,6 @@
 #include "parser_util.h"
 #include <lang/parser/parser.h>
+#include "lang/ast/keyword_ast.h"
 
 auto parse_type_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {

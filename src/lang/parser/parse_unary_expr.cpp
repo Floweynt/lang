@@ -1,4 +1,5 @@
 #include "lang/ast/operator_types.h"
+#include "lang/ast/unary_op_expr_ast.h"
 #include <lang/parser/parser.h>
 
 static auto tok_to_unary_op(token::operators op) -> unary_op_type

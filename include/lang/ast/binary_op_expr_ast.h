@@ -17,7 +17,7 @@ protected:
     auto do_codegen(codegen_ctx& context) const -> codegen_value override;
 
 public:
-    binary_op_expr(binary_op_type type, code_range operator_range, ast_ref lhs, ast_ref rhs);
+    binary_op_expr(binary_op_type op_ty, code_range operator_range, ast_ref lhs, ast_ref rhs);
     void visit_children(const std::function<void(const base_ast&)>& consumer) const override;
     auto serialize() const -> std::string override;
 

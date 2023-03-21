@@ -31,7 +31,6 @@ sources = [
   'src/lang/ast/control/yield_expr_ast.cpp',
   'src/lang/ast/control/while_expr_ast.cpp',
   'src/lang/codegen/codegen_value.cpp',
-  'src/lang/lexer/lex_impl.cpp',
   'src/lang/codegen/codegen_ctx.cpp',
   'src/lang/lexer/lexer.cpp',
   'src/lang/parser/parse_function_decl_stmt.cpp',
@@ -80,18 +79,32 @@ operator_tblgen = executable(
   'operator-tblgen', 
   'tools/operator_tablegen.cpp', 
   dependencies: [llvm_dep, fmt_dep],
-  link_args: ['-lLLVMTableGen']
+  link_args: ['-lLLVMTableGen'] # TODO: fix
+)
+
+lexer_generator = executable(
+  'lexer-generator', 
+  'tools/lexer_generator.cpp', 
+  dependencies: [fmt_dep],
 )
 
 operator_tablegen_files = custom_target(
   'operator-tablgen-files', 
   command: [operator_tblgen, '@INPUT@'],
-  input: ['operators.td'], 
+  input: ['src/operators.td'], 
   output: ['binop_codegen.cpp', 'register_ops.cpp']
+)
+
+lexer_generator_files = custom_target(
+  'lexer-generator-files', 
+  command: [lexer_generator, '-o', '@OUTPUT@', '@INPUT@'],
+  input: 'src/lexer.leg', 
+  output: 'lexer.cpp'
 )
 
 compiler = executable(
   'compiler', 
+  lexer_generator_files,
   operator_tablegen_files,
   sources, 
   dependencies: [llvm_dep, fmt_dep], 

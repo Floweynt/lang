@@ -3,10 +3,10 @@
 #include "lang/compiler_context.h"
 #include "lang/lexer/code_location.h"
 #include "lang/sema/types.h"
+#include "lang/utils/utils.h"
 #include <fmt/ranges.h>
 #include <ranges>
 #include <stdexcept>
-#include "lang/utils/utils.h"
 
 attribute_entry_stmt::attribute_entry_stmt(code_location start, code_location end, std::string name, std::vector<ast_ref> args)
     : base_ast(start, end, ATTRIBUTE_ENTRY_AST), name(std::move(name)), args(std::move(args))
@@ -20,7 +20,7 @@ auto attribute_entry_stmt::do_semantic_analysis(sema_ctx& context) const -> sema
 
     for (const auto& arg : args)
     {
-        auto [type, is_arg_valid, is_arg_constexpr, _] = arg->semantic_analysis(context);
+        auto [type, is_arg_valid, is_arg_constexpr, _t] = arg->semantic_analysis(context);
         is_valid &= is_arg_valid;
         arg_types.push_back(type);
 

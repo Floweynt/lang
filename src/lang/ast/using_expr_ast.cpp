@@ -1,19 +1,21 @@
+#include <fmt/ranges.h>
+// DO NOT REORDER
 #include "lang/ast/using_expr_ast.h"
 #include "lang/sema/types.h"
-#include <fmt/ranges.h>
+#include "lang/utils/utils.h"
 #include <ranges>
 #include <stdexcept>
-#include "lang/utils/utils.h"
 #include <utility>
 
 auto using_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analysis_result
 {
-    auto [ty, is_valid, is_consteval, _] = type->semantic_analysis(context);
+    auto [ty, is_valid, is_consteval, _t] = type->semantic_analysis(context);
     if (ty != context.langtype(primitive_type::META))
     {
         context.get_compiler_ctx().report_diagnostic({
             {type->range(), "type specifier must refer to a type (the expressions should have type 'metatype', but got \'" + ty->get_name() + "\')"},
             std::nullopt,
+            {}
         });
         return {context.langtype(primitive_type::UNIT), false};
     }

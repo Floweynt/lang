@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build-and-test-compiler:
     docker:
-      - image: floweynt/arch-llvm16-meson
+      - image: floweynt/arch-llvm16-meson:1.0
     steps:
       - checkout
       - run:

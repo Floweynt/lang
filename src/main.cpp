@@ -1,4 +1,5 @@
 #include "lang/codegen/codegen_ctx.h"
+#include "lang/compiler.h"
 #include "lang/compiler_context.h"
 #include "lang/lexer/code_location.h"
 #include "lang/lexer/token.h"
@@ -95,9 +96,9 @@ constexpr auto serialize_location(const std::variant<code_range, code_location, 
         loc);
 }
 
-void dump_diagnostics(compiler_context& ctx)
+void dump_diagnostics(const compiler_context& context)
 {
-    for (const auto& diagnostic : ctx.get_diagnostics())
+    for (const auto& diagnostic : context.get_diagnostics())
     {
         std::cout << fmt::format("{}: {}: {}\n", magic_enum::enum_name(diagnostic.diagnostic_level),
                                  serialize_location(diagnostic.main_diagnostic.location), diagnostic.main_diagnostic.message);
@@ -113,20 +114,20 @@ void dump_diagnostics(compiler_context& ctx)
         }
     }
 
-    if (ctx.get_error_count())
+    if (context.get_error_count())
     {
-        std::cout << fmt::format("compilation failed with {} errors\n", ctx.get_error_count());
+        std::cout << fmt::format("compilation failed with {} errors\n", context.get_error_count());
     }
-    if (ctx.get_warning_count())
+    if (context.get_warning_count())
     {
-        std::cout << fmt::format("{} warnings diagnostics reported\n", ctx.get_warning_count());
+        std::cout << fmt::format("{} warnings diagnostics reported\n", context.get_warning_count());
     }
-    if (ctx.get_info_count())
+    if (context.get_info_count())
     {
-        std::cout << fmt::format("{} info diagnostics reported\n", ctx.get_info_count());
+        std::cout << fmt::format("{} info diagnostics reported\n", context.get_info_count());
     }
 
-    if (ctx.get_error_count())
+    if (context.get_error_count())
     {
         exit(-1);
     }
@@ -200,12 +201,12 @@ void emit_code(llvm::Module& module, const std::string& output)
     dest.flush();
 }
 
-void write_token(std::ostream& out, lexer& lexer)
+void write_token(std::ostream& out, const std::vector<token>& tokens)
 {
     out << fmt::format(
         "[{}]",
         fmt::join(
-            lexer.get_prev_tokens() | std::views::transform([](const token& token) {
+            tokens | std::views::transform([](const token& token) {
                 std::string data;
                 if (token.has_value<literal_value<std::string>>())
                 {
@@ -248,62 +249,27 @@ void write_token(std::ostream& out, lexer& lexer)
             ","));
 }
 
-auto main(int argc, char** argv) -> int
+void start(argparse::ArgumentParser& program)
 {
-    auto args = std::span(argv, size_t(argc));
-
-    auto* prog_name = args[0];
-    argparse::ArgumentParser program(prog_name);
-
-    program.add_argument("--emit-tokens").help("emit tokens to file").metavar("token-out");
-    program.add_argument("--emit-ast").help("emit AST to file").metavar("ast-out");
-    program.add_argument("--emit-raw-ir").help("emit unoptimized IR").metavar("ir-out");
-    program.add_argument("--emit-ir").help("emit IR").metavar("ir-out");
-    program.add_argument("-o", "--output").required().help("specify the output file.").metavar("output");
-    program.add_argument("-O0").default_value(false).implicit_value(true).help("disable optimization");
-    program.add_argument("-O1").default_value(false).implicit_value(true).help("set optimization to level 1");
-    program.add_argument("-O2").default_value(false).implicit_value(true).help("set optimization to level 2");
-    program.add_argument("-O3").default_value(false).implicit_value(true).help("set optimization to level 3");
-    program.add_argument("--syntax-only").default_value(false).implicit_value(true);
-
-    program.add_argument("--syntax-only").default_value(false).implicit_value(true);
-    program.add_argument("files").remaining();
-
-    try
-    {
-        program.parse_args(argc, argv);
-    }
-    catch (const std::runtime_error& err)
-    {
-        std::cerr << err.what() << std::endl;
-        std::cerr << program;
-        std::exit(1);
-    }
-
     auto files = program.get<std::vector<std::string>>("files");
     auto output = program.get<std::string>("--output");
-    // auto token_out = program.get<std::string>("--emit-tokens");
-    // auto token_json_out = program.get<std::string>("--emit-tokens");
 
     if (files.empty())
     {
-        std::cerr << prog_name << "no input file\n";
+        std::cerr << "no input file\n";
         exit(-1);
     }
 
-    // -- parsing
     std::ifstream input(files.front());
     std::ifstream lib_types("stdlib/types");
 
     cat_streambuf streambuf(lib_types.rdbuf(), input.rdbuf());
     std::istream read_in(&streambuf);
 
-    compiler_context ctx(read_in);
-    lexer lexer(ctx);
+    compiler comp(read_in);
 
-    auto ast = parse(lexer, ctx);
-
-    dump_diagnostics(ctx);
+    comp.parse_src();
+    dump_diagnostics(comp.get_compiler_ctx());
 
     if (program.present("--emit-ast"))
     {
@@ -316,7 +282,7 @@ auto main(int argc, char** argv) -> int
             exit(-1);
         }
 
-        out << ast->serialize();
+        out << comp.get_serialized_ast();
     }
 
     if (program.present("--emit-tokens"))
@@ -330,14 +296,11 @@ auto main(int argc, char** argv) -> int
             exit(-1);
         }
 
-        write_token(out, lexer);
+        write_token(out, comp.get_tokens());
     }
 
-    // -- semantic analysis
-    sema_ctx sema(ctx);
-    ast->semantic_analysis(sema);
-
-    dump_diagnostics(ctx);
+    comp.semantic_analysis();
+    dump_diagnostics(comp.get_compiler_ctx());
 
     if (program.get<bool>("--syntax-only"))
     {
@@ -345,8 +308,7 @@ auto main(int argc, char** argv) -> int
     }
 
     // -- codegen
-    codegen_ctx codegen(sema);
-    ast->codegen(codegen);
+    comp.emit_ir();
 
     if (program.present("--emit-raw-ir"))
     {
@@ -360,7 +322,7 @@ auto main(int argc, char** argv) -> int
         }
 
         llvm::raw_os_ostream raw_os(out);
-        codegen.module().print(raw_os, nullptr);
+        comp.get_raw_ir().print(raw_os, nullptr);
     }
 
     // -- optimization
@@ -383,7 +345,7 @@ auto main(int argc, char** argv) -> int
         level = llvm::OptimizationLevel::O3;
     }
 
-    optimize(codegen.module(), level);
+    comp.optimize(level);
 
     if (program.present("--emit-ir"))
     {
@@ -397,9 +359,42 @@ auto main(int argc, char** argv) -> int
         }
 
         llvm::raw_os_ostream raw_os(out);
-        codegen.module().print(raw_os, nullptr);
+        comp.get_optimized_ir().print(raw_os, nullptr);
     }
 
-    // -- code emit
-    emit_code(codegen.module(), output);
+    emit_code(comp.get_optimized_ir(), output);
 }
+
+auto main(int argc, char** argv) -> int
+{
+    auto args = std::span(argv, size_t(argc));
+
+    auto* prog_name = args[0];
+    argparse::ArgumentParser program(prog_name);
+
+    program.add_argument("--emit-tokens").help("emit tokens to file").metavar("token-out");
+    program.add_argument("--emit-ast").help("emit AST to file").metavar("ast-out");
+    program.add_argument("--emit-raw-ir").help("emit unoptimized IR").metavar("ir-out");
+    program.add_argument("--emit-ir").help("emit IR").metavar("ir-out");
+    program.add_argument("-o", "--output").required().help("specify the output file.").metavar("output");
+    program.add_argument("-O0").default_value(false).implicit_value(true).help("disable optimization");
+    program.add_argument("-O1").default_value(false).implicit_value(true).help("set optimization to level 1");
+    program.add_argument("-O2").default_value(false).implicit_value(true).help("set optimization to level 2");
+    program.add_argument("-O3").default_value(false).implicit_value(true).help("set optimization to level 3");
+    program.add_argument("--syntax-only").default_value(false).implicit_value(true);
+    program.add_argument("files").remaining();
+
+    try
+    {
+        program.parse_args(argc, argv);
+    }
+    catch (const std::runtime_error& err)
+    {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        std::exit(1);
+    }
+
+    start(program);
+}
+

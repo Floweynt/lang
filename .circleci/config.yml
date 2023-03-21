@@ -7,6 +7,9 @@ jobs:
       - checkout
       - run:
           name: "Pull submodules"
+          command: "sudo pacman -Syu fmt"
+      - run:
+          name: "Pull submodules"
           command: "git submodule update --init --recursive"
       - run:
           name: "Configure"

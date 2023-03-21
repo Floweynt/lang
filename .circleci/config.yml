@@ -6,8 +6,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Test: ls"
-          command: "ls"
+          name: "Pull submodules"
+          command: "git submodule update --init --recursive"
       - run:
           name: "Configure"
           command: "CC=clang CXX=clang++ meson setup build -Db_sanitize=address"

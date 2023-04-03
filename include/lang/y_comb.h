@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility>
+
 template <class F>
 struct y_combinator
 {

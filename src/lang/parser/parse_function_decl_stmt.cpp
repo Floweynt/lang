@@ -1,7 +1,7 @@
 #include "lang/ast/function_decl_stmt_ast.h"
 #include "lang/lexer/token.h"
+#include "lang/parser/parser.h"
 #include "parser_util.h"
-#include <lang/parser/parser.h>
 
 auto parse_function_decl_stmt(lexer& lexer, compiler_context& ctx) -> ast_ref
 {

@@ -2,11 +2,11 @@
 
 #include "lang/codegen/codegen_ctx.h"
 #include "lang/codegen/codegen_value.h"
+#include "lang/lexer/code_location.h"
 #include "lang/sema/ct_value.h"
+#include "lang/sema/sema_ctx.h"
 #include "lang/sema/types.h"
 #include <functional>
-#include <lang/lexer/code_location.h>
-#include <lang/sema/sema_ctx.h>
 #include <llvm/IR/Value.h>
 #include <memory>
 #include <optional>
@@ -45,6 +45,7 @@ enum ast_type
     ATTRIBUTE_AST,
     WHILE_EXPR,
     NAMESPACED_NAME_AST,
+    MODULE_AST
 };
 
 inline static constexpr const char* AST_KIND_NAME[] = {"string_literal",

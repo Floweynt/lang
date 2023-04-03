@@ -16,7 +16,8 @@ auto base_ast::semantic_analysis(sema_ctx& context) const -> const semantic_anal
 
     if (sema_result->ty->is_builtin_function() && parent->get_ast_kind() != FUNCTION_CALL_EXPR)
     {
-        context.get_compiler_ctx().report_diagnostic({{range(), "builtin function must be immediately called"}});
+        context.get_compiler_ctx().report_diagnostic(
+            {{context.get_compiler_ctx().get_current_file(), range(), "builtin function must be immediately called"}});
     }
 
     return *sema_result;

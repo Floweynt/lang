@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+
 class type;
 
 using type_descriptor = const type*;

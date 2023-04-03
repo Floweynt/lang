@@ -43,6 +43,6 @@ public:
     constexpr auto get_compiler_ctx() -> const auto& { return context; };
     auto get_serialized_ast() -> std::string;
     auto get_tokens() -> const std::vector<token>&;
-    auto get_raw_ir() ->  llvm::Module&;
-    auto get_optimized_ir() ->  llvm::Module&;
+    auto get_raw_ir() -> llvm::Module&;
+    auto get_optimized_ir() -> llvm::Module&;
 };

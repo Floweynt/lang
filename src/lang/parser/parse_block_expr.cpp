@@ -1,6 +1,6 @@
 #include "lang/ast/block_expr_ast.h"
+#include "lang/parser/parser.h"
 #include "parser_util.h"
-#include <lang/parser/parser.h>
 
 auto parse_block_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {

@@ -1,5 +1,6 @@
+#include "lang/ast/base_ast.h"
+#include "lang/lexer/lexer.h"
 #include "parser_util.h"
-#include <lang/parser/parser.h>
 
 auto expect_semi(ast_ref ref, lexer& lexer, compiler_context& ctx) -> ast_ref
 {

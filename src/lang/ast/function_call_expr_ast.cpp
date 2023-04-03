@@ -2,12 +2,10 @@
 #include "lang/codegen/codegen_value.h"
 #include "lang/compiler_context.h"
 #include "lang/sema/types.h"
+#include "lang/utils/utils.h"
 #include <fmt/ranges.h>
 #include <optional>
 #include <ranges>
-
-// DO NOT REORDER
-#include "lang/utils/utils.h"
 
 function_call_expr::function_call_expr(code_location start, code_location end, ast_ref callee, std::vector<ast_ref> args)
     : base_ast(start, end, FUNCTION_CALL_EXPR), callee(std::move(callee)), args(std::move(args))
@@ -56,15 +54,17 @@ auto function_call_expr::do_semantic_analysis(sema_ctx& context) const -> semant
     {
         std::vector<diagnostic::diagnostic_entry> notes;
 
-        notes.emplace_back(callee->range(), "invokee type is " + invokee_ty->get_name());
+        notes.emplace_back(context.get_compiler_ctx().get_current_file(), callee->range(), "invokee type is " + invokee_ty->get_name());
 
         for (size_t i = 0; i < args.size(); i++)
         {
-            notes.emplace_back(args[i]->range(), "argument " + std::to_string(i) + " has type " + types[i]->get_name());
+            notes.emplace_back(context.get_compiler_ctx().get_current_file(), args[i]->range(),
+                               "argument " + std::to_string(i) + " has type " + types[i]->get_name());
         }
 
-        context.get_compiler_ctx().report_diagnostic({{range(), "unable to invoke function with specified argument types; either the invokee cannot "
-                                                                "be called as a function, or you messed up arguments"},
+        context.get_compiler_ctx().report_diagnostic({{context.get_compiler_ctx().get_current_file(), range(),
+                                                       "unable to invoke function with specified argument types; either the invokee cannot "
+                                                       "be called as a function, or you messed up arguments"},
                                                       std::nullopt,
                                                       notes});
         return {context.langtype(primitive_type::ERROR), false};

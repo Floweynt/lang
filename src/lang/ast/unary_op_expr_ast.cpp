@@ -24,10 +24,11 @@ auto unary_op_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_an
     if (result_type == context.langtype(primitive_type::ERROR))
     {
         context.get_compiler_ctx().report_diagnostic(
-            {{operator_range,
+            {{context.get_compiler_ctx().get_current_file(), operator_range,
               std::string("unknown overload for unary operator '") + UNARY_OPERATOR_SYMBOLS[op] + "' ; perhaps you failed to provide an overload?"},
              std::nullopt,
              {{
+                 context.get_compiler_ctx().get_current_file(),
                  expr->range(),
                  "operand type is: " + op_type->get_name(),
              }}});

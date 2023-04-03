@@ -133,24 +133,6 @@ void dump_diagnostics(const compiler_context& context)
     }
 }
 
-void optimize(llvm::Module& module, llvm::OptimizationLevel level)
-{
-    llvm::LoopAnalysisManager loop_analysis;
-    llvm::FunctionAnalysisManager function_analysis;
-    llvm::CGSCCAnalysisManager scc_analysis;
-    llvm::ModuleAnalysisManager module_analysis;
-    llvm::PassBuilder builder;
-
-    builder.registerModuleAnalyses(module_analysis);
-    builder.registerCGSCCAnalyses(scc_analysis);
-    builder.registerFunctionAnalyses(function_analysis);
-    builder.registerLoopAnalyses(loop_analysis);
-    builder.crossRegisterProxies(loop_analysis, function_analysis, scc_analysis, module_analysis);
-
-    llvm::ModulePassManager pass_mgr = builder.buildPerModuleDefaultPipeline(level);
-    pass_mgr.run(module, module_analysis);
-}
-
 void emit_code(llvm::Module& module, const std::string& output)
 {
     // -- code emit
@@ -249,6 +231,23 @@ void write_token(std::ostream& out, const std::vector<token>& tokens)
             ","));
 }
 
+void with_option(argparse::ArgumentParser& program, const std::string_view& str, auto callback)
+{
+    if (program.present(str))
+    {
+        auto file = program.get<std::string>(str);
+        std::ofstream out(file);
+
+        if (!out)
+        {
+            std::cerr << "unable to open file '" << file << "'\n";
+            exit(-1);
+        }
+
+        callback(out);
+    }
+}
+
 void start(argparse::ArgumentParser& program)
 {
     auto files = program.get<std::vector<std::string>>("files");
@@ -271,33 +270,8 @@ void start(argparse::ArgumentParser& program)
     comp.parse_src();
     dump_diagnostics(comp.get_compiler_ctx());
 
-    if (program.present("--emit-ast"))
-    {
-        auto file = program.get<std::string>("--emit-ast");
-        std::ofstream out(file);
-
-        if (!out)
-        {
-            std::cerr << "unable to open file '" << file << "'\n";
-            exit(-1);
-        }
-
-        out << comp.get_serialized_ast();
-    }
-
-    if (program.present("--emit-tokens"))
-    {
-        auto file = program.get<std::string>("--emit-tokens");
-        std::ofstream out(file);
-
-        if (!out)
-        {
-            std::cerr << "unable to open file '" << file << "'\n";
-            exit(-1);
-        }
-
-        write_token(out, comp.get_tokens());
-    }
+    with_option(program, "--emit-ast", [&comp](std::ostream& out) { out << comp.get_serialized_ast(); });
+    with_option(program, "--emit-tokens", [&comp](std::ostream& out) { write_token(out, comp.get_tokens()); });
 
     comp.semantic_analysis();
     dump_diagnostics(comp.get_compiler_ctx());
@@ -307,25 +281,13 @@ void start(argparse::ArgumentParser& program)
         exit(0);
     }
 
-    // -- codegen
     comp.emit_ir();
 
-    if (program.present("--emit-raw-ir"))
-    {
-        auto file = program.get<std::string>("--emit-raw-ir");
-        std::ofstream out(file);
-
-        if (!out)
-        {
-            std::cerr << "unable to open file '" << file << "'\n";
-            exit(-1);
-        }
-
+    with_option(program, "--emit-raw-ir", [&comp](std::ostream& out) {
         llvm::raw_os_ostream raw_os(out);
         comp.get_raw_ir().print(raw_os, nullptr);
-    }
+    });
 
-    // -- optimization
     llvm::OptimizationLevel level = llvm::OptimizationLevel::O2;
 
     if (program.get<bool>("-O0"))
@@ -347,20 +309,10 @@ void start(argparse::ArgumentParser& program)
 
     comp.optimize(level);
 
-    if (program.present("--emit-ir"))
-    {
-        auto file = program.get<std::string>("--emit-ir");
-        std::ofstream out(file);
-
-        if (!out)
-        {
-            std::cerr << "unable to open file '" << file << "'\n";
-            exit(-1);
-        }
-
+    with_option(program, "--emit-ir", [&comp](std::ostream& out) {
         llvm::raw_os_ostream raw_os(out);
         comp.get_optimized_ir().print(raw_os, nullptr);
-    }
+    });
 
     emit_code(comp.get_optimized_ir(), output);
 }

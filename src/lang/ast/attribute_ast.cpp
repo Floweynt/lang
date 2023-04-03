@@ -26,7 +26,8 @@ auto attribute_entry_stmt::do_semantic_analysis(sema_ctx& context) const -> sema
 
         if (!is_arg_constexpr)
         {
-            context.get_compiler_ctx().report_diagnostic({{arg->range(), "attribute argument must be constexpr"}});
+            context.get_compiler_ctx().report_diagnostic(
+                {{context.get_compiler_ctx().get_current_file(), arg->range(), "attribute argument must be constexpr"}, {}, {}});
             is_valid = false;
         }
     }
@@ -44,10 +45,11 @@ auto attribute_entry_stmt::do_semantic_analysis(sema_ctx& context) const -> sema
 
         for (const auto& arg_type : arg_types)
         {
-            notes.emplace_back(args[index++]->range(), "argument type " + arg_type->get_name());
+            notes.emplace_back(context.get_compiler_ctx().get_current_file(), args[index++]->range(), "argument type " + arg_type->get_name());
         }
 
-        context.get_compiler_ctx().report_diagnostic({{range(), "unable to resolve attribtue " + name}, {}, notes});
+        context.get_compiler_ctx().report_diagnostic(
+            {{context.get_compiler_ctx().get_current_file(), range(), "unable to resolve attribtue " + name}, {}, notes});
 
         return {nullptr, false, false};
     }

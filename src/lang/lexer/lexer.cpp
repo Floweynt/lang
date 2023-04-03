@@ -1,4 +1,4 @@
-#include <lang/lexer/lexer.h>
+#include "lang/lexer/lexer.h"
 #include <magic_enum.hpp>
 
 auto lex_tok(lex_context& ctx) -> token;

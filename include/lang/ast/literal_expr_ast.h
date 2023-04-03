@@ -1,8 +1,8 @@
 #pragma once
+
+#include "lang/ast/base_ast.h"
 #include "lang/compiler_context.h"
 #include "lang/sema/types.h"
-#include <lang/ast/base_ast.h>
-
 #include <llvm/IR/Constants.h>
 #include <utility>
 
@@ -20,7 +20,8 @@ protected:
             const auto* literal_type = context.resolve_literal_string(literal);
             if (literal_type == context.langtype(primitive_type::ERROR))
             {
-                context.get_compiler_ctx().report_diagnostic({{range(), "unknown string literal specifier '" + literal + "'"}});
+                context.get_compiler_ctx().report_diagnostic(
+                    {{context.get_compiler_ctx().get_current_file(), range(), "unknown string literal specifier '" + literal + "'"}, {}, {}});
             }
             return {literal_type, literal_type != context.langtype(primitive_type::ERROR)};
         }
@@ -30,14 +31,18 @@ protected:
             const auto* literal_type = context.resolve_literal_integer(literal);
             if (literal_type == context.langtype(primitive_type::ERROR))
             {
-                context.get_compiler_ctx().report_diagnostic({{range(), "unknown integer literal specifier '" + literal + "'"}});
+                context.get_compiler_ctx().report_diagnostic(
+                    {{context.get_compiler_ctx().get_current_file(), range(), "unknown integer literal specifier '" + literal + "'"}, {}, {}});
             }
 
             if (literal_type->is_integral())
             {
                 if (literal_type->is_unsigned_integral() && val < 0)
                 {
-                    context.get_compiler_ctx().report_diagnostic({{range(), "integer literal specifier is unsigned; the value is not"}});
+                    context.get_compiler_ctx().report_diagnostic(
+                        {{context.get_compiler_ctx().get_current_file(), range(), "integer literal specifier is unsigned; the value is not"},
+                         {},
+                         {}});
                 }
 
                 // not implement
@@ -50,7 +55,8 @@ protected:
             const auto* literal_type = context.resolve_literal_floating(literal);
             if (literal_type == context.langtype(primitive_type::ERROR))
             {
-                context.get_compiler_ctx().report_diagnostic({{range(), "unknown floating literal specifier '" + literal + "'"}});
+                context.get_compiler_ctx().report_diagnostic(
+                    {{context.get_compiler_ctx().get_current_file(), range(), "unknown floating literal specifier '" + literal + "'"}, {}, {}});
             }
             return {literal_type, literal_type != context.langtype(primitive_type::ERROR)};
         }

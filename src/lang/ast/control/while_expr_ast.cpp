@@ -17,7 +17,7 @@ auto while_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_analy
     if (!context.exists_conversion(cond_type, context.langtype(primitive_type::BOOL)) && cond_type != context.langtype(primitive_type::ERROR))
     {
         works = false;
-        context.get_compiler_ctx().report_diagnostic({{condition->range(), "cannot convert type '" + cond_type->get_name() + "' to bool"}});
+        context.get_compiler_ctx().report_diagnostic({{context.get_compiler_ctx().get_current_file(), condition->range(), "cannot convert type '" + cond_type->get_name() + "' to bool"}});
     }
 
     auto [_t, body_works, _t, _t] = body->semantic_analysis(context);

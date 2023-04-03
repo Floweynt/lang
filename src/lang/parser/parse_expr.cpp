@@ -1,6 +1,7 @@
+#include "lang/ast/empty_ast.h"
+#include "lang/lexer/lexer.h"
 #include "lang/lexer/token.h"
-#include <lang/ast/empty_ast.h>
-#include <lang/parser/parser.h>
+#include "lang/parser/parser.h"
 
 static auto do_parse_expr(lexer& lexer, compiler_context& ctx) -> ast_ref
 {

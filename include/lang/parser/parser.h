@@ -1,8 +1,8 @@
 #pragma once
 
-#include <lang/ast/base_ast.h>
-#include <lang/compiler_context.h>
-#include <lang/lexer/lexer.h>
+#include "lang/ast/base_ast.h"
+#include "lang/compiler_context.h"
+#include "lang/lexer/lexer.h"
 #include <memory>
 
 auto parse(lexer& lexer, compiler_context& ctx) -> ast_ref;

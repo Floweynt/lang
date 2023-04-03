@@ -19,6 +19,7 @@ sources = [
   'src/lang/ast/namespace_stmt_ast.cpp',
   'src/lang/ast/base_ast.cpp',
   'src/lang/ast/unary_op_expr_ast.cpp',
+  'src/lang/ast/module_ast.cpp',
   'src/lang/ast/attribute_ast.cpp',
   'src/lang/ast/binary_op_expr_ast.cpp',
   'src/lang/ast/function_decl_stmt_ast.cpp',

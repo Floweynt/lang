@@ -1,4 +1,3 @@
-
 #include "lang/ast/binary_op_expr_ast.h"
 #include "lang/ast/base_ast.h"
 #include "lang/ast/name_ref_expr_ast.h"
@@ -39,7 +38,8 @@ auto binary_op_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_a
     bool works = true;
     if (!lhs_value_category && op >= OP_ASSIGN)
     {
-        context.get_compiler_ctx().report_diagnostic({{lhs->range(), "lhs must be a lvalue for assignment"}});
+        context.get_compiler_ctx().report_diagnostic(
+            {{context.get_compiler_ctx().get_current_file(), lhs->range(), "lhs must be a lvalue for assignment"}});
         works = false;
     }
 
@@ -48,14 +48,15 @@ auto binary_op_expr::do_semantic_analysis(sema_ctx& context) const -> semantic_a
     if (result_type == context.langtype(primitive_type::ERROR))
     {
         context.get_compiler_ctx().report_diagnostic(
-            {{operator_location,
+            {{context.get_compiler_ctx().get_current_file(), operator_location,
               std::string("unknown overload for operator `") + BINARY_OPERATOR_SYMBOLS[op] + "`; perhaps you failed to provide an overload?"},
              std::nullopt,
              {{
+                  context.get_compiler_ctx().get_current_file(),
                   lhs->range(),
                   "left-hand side type is: " + lhs_type->get_name(),
               },
-              {rhs->range(), "right-hand side type is: " + rhs_type->get_name()}}});
+              {context.get_compiler_ctx().get_current_file(), rhs->range(), "right-hand side type is: " + rhs_type->get_name()}}});
 
         return {context.langtype(primitive_type::ERROR), false};
     }

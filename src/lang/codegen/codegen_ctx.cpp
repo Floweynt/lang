@@ -9,7 +9,8 @@
 #include <stdexcept>
 
 codegen_ctx::codegen_ctx(sema_ctx& ctx)
-    : ir_builder(my_llvm_ctx), curr_module(std::make_unique<llvm::Module>("", my_llvm_ctx)), unit_ty(llvm::StructType::get(my_llvm_ctx)), ctx(ctx)
+    : ir_builder(my_llvm_ctx), curr_module(std::make_unique<llvm::Module>("", my_llvm_ctx)), unit_ty(llvm::StructType::get(my_llvm_ctx)), ctx(ctx),
+      func_return_ty(nullptr)
 {
     scoped_vars.push_back({{}, true});
     register_binary_operator_codegen(*this);

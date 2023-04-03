@@ -1,4 +1,5 @@
 #pragma once
+
 #include "code_location.h"
 #include "lang/compiler_context.h"
 #include <cctype>
@@ -111,7 +112,6 @@ public:
 
         TOK_KW_STRUCT,
 
-        TOK_KW_MODULE,
         TOK_KW_IMPORT
     };
 

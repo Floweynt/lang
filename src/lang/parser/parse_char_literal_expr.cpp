@@ -1,6 +1,6 @@
-#include "parser_util.h"
 #include "lang/ast/char_literal_expr_ast.h"
-#include <lang/parser/parser.h>
+#include "lang/lexer/lexer.h"
+#include "parser_util.h"
 
 auto parse_char_literal_expr(lexer& lexer, compiler_context& /*ctx*/) -> ast_ref
 {

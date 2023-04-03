@@ -1,5 +1,7 @@
 #include "lang/ast/binary_op_expr_ast.h"
-#include <lang/parser/parser.h>
+#include "lang/lexer/lexer.h"
+#include "lang/lexer/token.h"
+#include "lang/parser/parser.h"
 
 namespace
 {

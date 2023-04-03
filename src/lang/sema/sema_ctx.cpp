@@ -44,11 +44,12 @@ public:
 
     auto invoke_result(sema_ctx& ctx, const std::vector<type_descriptor>& desc) const -> type_descriptor override
     {
-        auto name_list = desc | std::views::transform([](type_descriptor desc) {
-                             return diagnostic::diagnostic_entry{std::monostate{}, "type is: " + desc->get_name()};
-                         });
+        auto name_list =
+            desc | std::views::transform([&ctx](type_descriptor desc) {
+                return diagnostic::diagnostic_entry{ctx.get_compiler_ctx().get_current_file(), std::monostate{}, "type is: " + desc->get_name()};
+            });
 
-        ctx.get_compiler_ctx().report_diagnostic({{ctx.get_ast_stack().top()->range(), "dumping types"},
+        ctx.get_compiler_ctx().report_diagnostic({{ctx.get_compiler_ctx().get_current_file(), ctx.get_ast_stack().top()->range(), "dumping types"},
                                                   std::nullopt,
                                                   std::vector<diagnostic::diagnostic_entry>(name_list.begin(), name_list.end()),
                                                   diagnostic::info});

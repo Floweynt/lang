@@ -35,7 +35,10 @@ auto namespaced_name_ref_expr::do_semantic_analysis(sema_ctx& context) const -> 
     // we make sure that the right hand side is an name
     if (rhs->get_ast_kind() != NAME_REF)
     {
-        context.get_compiler_ctx().report_diagnostic({{rhs->range(), "expected identifier after namespace scope resolution operator ::"}});
+        context.get_compiler_ctx().report_diagnostic(
+            {{context.get_compiler_ctx().get_current_file(), rhs->range(), "expected identifier after namespace scope resolution operator ::"},
+             {},
+             {}});
         return {context.langtype(primitive_type::ERROR), false};
     }
 
@@ -48,7 +51,8 @@ auto namespaced_name_ref_expr::do_semantic_analysis(sema_ctx& context) const -> 
     // handle the case for errors
     if (resolved_name == context.langtype(primitive_type::ERROR))
     {
-        context.get_compiler_ctx().report_diagnostic({{rhs->range(), "cannot resolve nested scope"}});
+        context.get_compiler_ctx().report_diagnostic(
+            {{context.get_compiler_ctx().get_current_file(), rhs->range(), "cannot resolve nested scope"}, {}, {}});
         return {context.langtype(primitive_type::ERROR), false};
     }
     if (resolved_name == context.langtype(primitive_type::META))
